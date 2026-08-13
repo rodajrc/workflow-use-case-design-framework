@@ -1,0 +1,4 @@
+# Ignore files and directories prefixed with the keyword 'ignore-'
+ignore-* 
+ignore-*/
+

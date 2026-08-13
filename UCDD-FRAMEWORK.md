@@ -113,19 +113,32 @@ You can use these keywords when categorizing your playbooks in the form of `{str
 
 ## 3. Trigger and Execution Priority
 
-State the trigger condition as a single sentence. It should align with your **scope** in the **objective** section. 
+State the trigger conditions. Usually, a workflow will run after receiving an alert under the following scopes:
 
-You can also define a priority tier if supported by your SOAR platform to resolve collisions when more than one playbook's trigger matches the same alert. In a 1-2-3 priority model, you would assign the priorities as follows:
+- Trigger by *ANY* alert
+- Trigger by a *VENDOR_SPECIFIC* alert
+- Trigger by a *PRODUCT_SPECIFIC* alert
+- Trigger by an *SPECIFIC_ALERT* 
 
-- **Priority 1** — Only for deterministic automation or event-specific incident handling. The most targeted match available for this exact condition. Anything is more specific than this playbook!
-- **Priority 2** — This is for product-specific automation. Matches a whole product or alert family, broader than Priority 1 but not a last resort.
-- **Priority 3** — For fallback or catch-all logic. Fires only when nothing more specific claimed the alert.
+If the workflow is unconditioned, your playbook MUST not depend on any original alert field.
+
+If the workflow is conditioned on a particular vendor alert, you should include a sample of the standardized fields of the original alerts that can be originated by all products offered by that vendor. This is often too hard and time-consuming to do and often is too broad; hence, I'd suggest moving to the next trigger scope unless you have a very particular reason to remain vendor scoped.
+
+If the workflow is conditioned on a particular product or alert, you should include an example of an original alert of that product.
+
+Finally, trigger conditions should account for false-positive execution as well. You can reduce false-positives by checking unique identifying fields. E.g. `vendor_name`, `product_id`, or `alert_id` field. 
+
+Workflows can also be prioritized. Usually, the more specific the playbook, the narrower is the scope.
+
+- **Priority 1** — (`SPECIFIC_ALERT`) Only for deterministic automation or alert-specific incident handling. The most targeted match available for this exact condition. Anything is more specific than this playbook!
+- **Priority 2** — (`PRODUCT_SPECIFIC`) This is for product-specific automation. Matches a whole product or alert family, broader than Priority 1 but not a last resort.
+- **Priority 3** — (`VENDOR_SPECIFIC` or `ANY`) For fallback or catch-all logic. Fires only when nothing more specific claimed the alert.
 
 You can write this section as shown below:
 
 ```md
 **Trigger Conditions**
-Explain briefly the trigger conditions here.
+Explain briefly the trigger conditions here. Include a sample of the original alert or alerts that are relevant for your workflow.
 
 **Execution Policy**
 - **Priority**: State your playbook priority
@@ -138,35 +151,34 @@ Explain briefly the trigger conditions here.
 
 Free text. A short plan of the mechanism, before it gets broken into implementation pieces.
 
-Here you can describe more precisely the scope and dependencies of your automation goal, and you definitely start using product specific terminology to describe how you are going to solve the automation challenge.
+Here you can describe more precisely the scope and dependencies of your automation goal. The following example is a strategy summary for a DTM CatchAll playbook example I built in Google SecOps SOAR.
 
-The following example is a strategy summary for a DTM CatchAll playbook example I built in Google SecOps SOAR.
+> **Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring (DTM)* (product) alert. **Score** the alert using DTM *"Alert Severity Definitions"*. **Prioritize** the alert using the calculated scores. **Triage** the case to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
 
-> **Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring (DTM)* (product) alert. **Score** the alert using DTM's *"Alert Severity Definitions"*. **Prioritize** the alert and grouping case using the calculated score and alert severity record leveraging *Siemplify* and *Tools* integration actions. **Triage** the case to the correct IR SOC team depending on the final priority level. Finally, **Notify** the SOC team leveraging *EmailV2* and, optionally, *Telegram* integrations.
-
-When writing your strategy, do not be afraid of using text formatting to your own advantage to make it clearer. Also, use sentences to describe the workflow architecture.
+When writing your strategy, use text formatting to your own advantage to make the strategy clearer. Moreover, use one sentence to describe a potential subflow within the workflow.
 
 1. I used **bold text** to represent **verbs** that lead to **outcomes** in the automation. In the example above, I have the following verbs that define each stage of the workflow:
-    - Trigger
+    - Trigger condition
     - Score
     - Prioritize
     - Triage
     - Notify
-2. I used *Italics* to highlight platform specific components and features.
-    - Google Threat Intelligence
-    - Digital Threat Monitoring
-    - [DTM] Alert Severity Definitions
-    - Siemplify Integration
-    - Tools Integration
-    - EmailV2 Integration
+
+2. I used *Italics* to highlight *data sources* and *SOAR components*:
+    - Google Threat Intelligence (data source vendor)
+    - Digital Threat Monitoring (data source product)
+    - Alert Severity Definitions (GTI's built-in alert severity)
+    - Email Integration
     - Telegram Integration
-3. Each sentence describes a subflow within the main workflow. For example:
+
+3. Finally, each sentence describes a potential subflow:
     - *"Score the alert using DTM's Alert Severity Definitions"* is an alert scoring subflow.
     - *"Notify the SOC team leveraging EmailV2 and, optionally, Telegram integrations"* is a notification subflow that explicitly states that Telegram is optional (parameterizable to be enabled or not)
 
 > **Tip**
-> You can begin by defining your *"Strategy Summary"*, as shown above. This is your base strategy. After the overall idea is set, you write a more concrete version of that summary: A *"Technical Strategy"*. 
-> If you end up discovering that a technical claim you made was not supported by your platform, you can simply update that section in your *Technical Strategy* while keeping the base strategy intact! (unless your base strategy has a problem)
+> Begin by writing your *"Strategy Summary"*, as shown above. This is your base strategy, SOAR platform independent. 
+> After the overall idea is set, you write a more concrete version of that summary: A *"Technical Strategy"*. This is a more precise version of your strategy that will deliberately include your SOAR platform vocabulary.
+> The benefit of dividing your strategy in two layers is big! If you end up discovering that a technical claim you made was not supported by your platform, you can simply update that section in your *Technical Strategy* while keeping the base strategy intact! Also, your base strategy is portable between SOAR platforms.
 
 ## 5. Modular Technical Implementation
 
