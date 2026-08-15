@@ -3,7 +3,7 @@ ucdd_version: 1
 use_case_name: "Digital Threat Monitoring Catch All (dtm-catchall)"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-08-01
-last_update: 2026-08-14
+last_update: 2026-08-15
 owner: "rodajrc"
 status: "ACTIVE:IN_DEVELOPMENT"
 related_flows:
@@ -24,9 +24,9 @@ related_flows:
 | **Use case name** | Digital Threat Monitoring Catch All (DTM CatchAll) |
 | **SOAR platform** | Google SecOps SOAR (Formerly, Siemplify) |
 | **Creation date** | *2026-08-01* |
-| **Last update** | *2026-08-14* |
+| **Last update** | *2026-08-15* |
 | **Owner** | rodajrc |
-| **Status** | **Active, in development**: Playbook handles case initialization, alert assessment through severity scores, alert prioritization, and alert notification with Email and Telegram 3P integrations. Triage block (`4 Any Alert Triage`) is live but I've flagged it as incomplete as being too simple, not genuinely parameterized, and isn't product alert specific. Missing Score block for GTI-DTM entities and artifacts. |
+| **Status** | **Active, first working version**: Playbook confirmed end-to-end: Case initialization, severity-based scoring, prioritization, tier-based triage, and email notification with a branded HTML template and a dynamic case link. Telegram notification is supported but currently disabled by config. Entity-based scoring (beyond native DTM severity) is a planned improvement, not required by the stated objective. |
 | **Related flows** | Any Case Initialization, GTI-DTM Alert Case Initialization, GTI-DTM Alert Score by Severity, Any Alert Prioritization, Any Alert Triage, Any Alert Notification. |
 
 **This is UCDD Version 1**
@@ -42,6 +42,7 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 0.2 | 2026-08-14 | rodajrc | UCDD draft finalized. Wired `4 Any Alert Triage` block. |
 | 0.3 | 2026-08-14 | rodajrc | Blocks renamed live to the `Any <stage>` / `GTI-DTM <stage>` convention. Section 5 rewritten around my standing five-stage playbook framework (Case Init -> Scoring -> Prioritization -> Triage -> Specific Response). |
 | 0.4 | 2026-08-14 | rodajrc | Decided `4 Any Alert Triage` should eventually split into a Case Stage Lifecycle block and a Team/Queue Routing block instead of collapsing both through one branch (5.5.1, not built yet). Wrote down the variable sets I need to weigh for each future block. |
+| 0.5 | 2026-08-15 | rodajrc | **First working version**. Triage assignment and Notification's block both confirmed live end-to-end on sample case alert. Notification email rebuilt with a branded HTML template and a dynamic case link using `[General.HostUrl]`, which resolves to Google SecOps instance URL. |
 
 ## 1. Objective
 
@@ -100,7 +101,7 @@ Some relevant original fields from product (non-exhaustive, redacted):
 
 1. **Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring* (product) alert leveraging the original alert.
     - If the SOAR platform supports it, trigger by *Product Name* equal to `DTM Alert`
-    - Alternatively, trigger if the alert contains the orginal fields `monitor_id` and `monitor_name` (product distinctive fields)
+    - Alternatively, trigger if the alert contains the original fields `monitor_id` and `monitor_name` (product distinctive fields)
     - To reduce the likelihood of false-positive execution, include a condition to check the *Device Vendor* (`[Alert.DeviceVendor]`) equal to `Google Threat Intelligence`
 
 2. **Score** the alert using the documented [Alert Severity Definitions](https://gtidocs.virustotal.com/docs/dtm-alert-severity#prioritization-of-alerts).
@@ -116,7 +117,7 @@ Some relevant original fields from product (non-exhaustive, redacted):
     - On the escalation path, use *Siemplify - Assign Case* (or *Tools - Assign Case to User*) to assign the case to an Incident Response SOC team, and *Siemplify - Change Case Stage* to modify the case's current stage to `Investigation` or `Incident`
     - Tier assignment is parameterized at the call site via `param_investigation_team`/`param_incident_team` inputs (By default `@Tier1`/`@Tier2`; *Google SecOps* built-in *SOC roles*).
 
-5. **Notificate** the alert leveraging *EmailV2 - Send Email* integration action, and optionally, *Telegram - Send Message*
+5. **Notify** the alert leveraging *EmailV2 - Send Email* integration action, and optionally, *Telegram - Send Message*
 
 ## 5. Modular Technical Implementation
 
@@ -124,19 +125,24 @@ Technical Strategy is enough for now
 
 ## 6. Playbook Statement
 
-> TODO
-> Still under development
-
 *DTM CatchAll* triggers on any Google Threat Intelligence DTM alert (any monitor, any alert sub-type) that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`1 Any Case Initialization`** runs generic, cross-playbook case setup (first-alert / similar-case detection); **`1 GTI-DTM Alert Case Initialization`** then runs DTM-specific enrichment (original-alert-JSON capture, case-wall insight, monitor-slug-aware tagging). **`2 GTI-DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into case context. **`3 Any Alert Prioritization`** reads that score and sets the case's real, native `Alert.Priority` field. **`4 Any Alert Triage`** reads the resulting priority to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`5 Any Alert Notification`** reads `Alert.Priority` against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.
 
 ## 7. Assumptions and Improvements
 
+**Assumptions**
+
 - I'm assuming every DTM alert (regardless of sub-type — Compromised Credentials, Document, etc.) carries `monitor_id` and `monitor_name`; I deliberately didn't enumerate sub-types in the trigger condition (Section 3), accepting the residual risk that a future non-DTM GTI alert type could coincidentally carry monitor-shaped fields.
+- I'm assuming the Scoring subflow's output field name and the Prioritization subflow's input field name stay in agreement going forward. That's `Alert.ALERT_SEVERITY`, written by Scoring and read by Prioritization's `Prioritize by Alert Severity` condition. Neither subflow declares this as a formal contract yet, so a future edit to either one's field naming could silently break the link again without either subflow raising an error.
+
+**Improvements**
+
+- **(BLOCK) Any Alert Notification**: Added HTML template for `EmailV2 - Send Email` integration with parameters `param_branding_name` and `param_playbook_name`.
+
+![Screenshot of email sent to sandbox email inbox](/examples/dtm-catchall/static/ss_notification_email_sample.png)
 
 ## 8. Simulation
 
-No formal Playbook Simulator run is on record for this build.
-Formal simulation is deferred until first version is completed.
+No formal Playbook Simulator run is written up here yet. Several real debug-mode runs have been executed against the live playbook, including a full end-to-end pass confirming Triage assignment and Notification delivery.
 
 ## 9. Resources
 

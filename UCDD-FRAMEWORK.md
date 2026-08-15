@@ -151,7 +151,9 @@ Explain briefly the trigger conditions here. Include a sample of the original al
 
 Free text. A short plan of the mechanism, before it gets broken into implementation pieces.
 
-Here you can describe more precisely the scope and dependencies of your automation goal. The following example is a strategy summary for a DTM CatchAll playbook example I built in Google SecOps SOAR.
+Here you can describe a bit more precisely the scope and dependencies of your automation goal, without being too rigorous about the specific technical details of your SOAR platform. Why? This is the *"north star"* you (and others) will use when mapping the idea to an actual SOAR platform.
+
+The following example is a strategy summary for a DTM CatchAll playbook example I built in Google SecOps SOAR.
 
 > **Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring (DTM)* (product) alert. **Score** the alert using DTM *"Alert Severity Definitions"*. **Prioritize** the alert using the calculated scores. **Triage** the case to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
 
@@ -177,27 +179,31 @@ When writing your strategy, use text formatting to your own advantage to make th
 
 > **Tip**
 > Begin by writing your *"Strategy Summary"*, as shown above. This is your base strategy, SOAR platform independent. 
-> After the overall idea is set, you write a more concrete version of that summary: A *"Technical Strategy"*. This is a more precise version of your strategy that will deliberately include your SOAR platform vocabulary.
+> After the overall idea is set, you can write a more concrete version of that summary: A *"Technical Strategy"*. This is a more precise and rigorous version of your strategy that will deliberately include your SOAR platform vocabulary. But still not as detailed as in the following section. Similar to the standard *Strategy Summary* that guides you on ANY SOAR platform, you want the *Technical Summary* to guide you on your particular SOAR platform.
 > The benefit of dividing your strategy in two layers is big! If you end up discovering that a technical claim you made was not supported by your platform, you can simply update that section in your *Technical Strategy* while keeping the base strategy intact! Also, your base strategy is portable between SOAR platforms.
 
 ## 5. Modular Technical Implementation
 
-Read back the Automation Strategy and break it into its smaller goals or milestones.
+> **Tip**
+> I found that the *Strategy Summary* and *Technical Strategy* in the previous sections are enough (if written properly) to start working on your playbook.
+> You can safely skip this section until you have a working version of your playbook. At that point, you walkthrough every one of your blocks to describe their functionality.
+> You can also fill this section as you build the playbook, making sure you are aligned with what you described in your *Strategy Summary*. At the same time, work on **Section 7** to document any Assumption you made and Improvement you added while making your playbook.
 
-If you used the sentence technique to break down the workflow into clearly defined outcomes, this will become very easy for you to scrutinize. 
+This section is about breaking the final playbook into its overall compounding elements.
 
-For each subflow, name it and state what it does. This is also where platform-specific detail belongs. For example, on Google SecOps SOAR, that means naming the actual integration actions each subflow will call.
-
-Other users can take your UCDD and translate your logic into their own platforms as well.
-
-> **Important**
-> Do not forget specifying the input/output parameters, if any, of your subflows. This is very important for the Playbook Parameterization principle.
+For each subflow, name it and state what it does. This is also where platform-specific details belong. For example, on Google SecOps SOAR, that means naming the actual integration actions and configurations each subflow will call.
 
 > **Note**
-> As you develop your playbook, you may determine that another subflow is needed, or is not needed but good to have. You can also include those extra subflows as long as they don't break your original strategy.
-> I'll suggest leaving these additional flows at the end though.
+> As you develop your playbook, you may determine that another subflow is needed, or is not needed but good to have. You can also include those extra subflows as long as they don't break your original strategy. You should document those *"extra"* blocks in the *Assumptions and Improvements* section as well.
 
-Also, for each action you MUST consider **error handling**.
+You must document all input and output parameters of your subflows, if any. This is very important for the parameterization principle. Importantly, many SOAR platforms support outputting data in two main ways:
+- **Execution output**: The subflow specifies the data model will output. You usually use this output when you need to feed another block or action downstream in the workflow logic.
+- **Case or Alert database**: Most SOAR and DFIR platforms support adding context in case or alert scoped variables. In comparison to programming terms, these would be like global variables. You usually use this type of output when you want to store something accessible for the analyst as well.
+
+> **Tip**
+> A consistent naming convention makes a parameter's role obvious at a glance. As one example, not a requirement: the DTM CatchAll reference implementation prefixes call-site-configurable inputs with `param_` (e.g. `param_investigation_team`) and fixed, rarely-changed constants with `CONST_` (e.g. `CONST_CONTEXT_ALERT_SEVERITY`). Pick whatever scheme keeps intent legible in your own UCDDs.
+
+Finally, for each action in your subflows, you MUST consider **error handling**.
 
 **Which actions in this workflow and subflows are subject to failure, and what happens when they fail?**
 
@@ -208,7 +214,7 @@ For your reference, here is a list of recurring failure classes worth checking a
 - `MISSING_INTEGRATION`, when your platform lacks the integration instance needed to talk to a third-party platform.
 - `MISCONFIGURED_INTEGRATION`, when your platform has the integration available but the configuration is incorrect.
 - `MALFORMED_DATA`, when the data you expect from an alert or a previous integration action is not what you expected.
-- `SYSTEM_ERROR`, when the SOAR platform fails.
+- `SYSTEM_ERROR`, when the SOAR platform or the third-party platform fails.
 
 > **Note**
 > A shared taxonomy of failure classes across use cases would make this section more consistent and is worth developing once enough UCDDs exist to generalize from.
@@ -235,7 +241,7 @@ You can also list any added logic you included to optimize, improve, or enhance 
 
 **What actual test runs have been done, and what did they show?**
 
-Record every simulation run and every finding it produced, on whatever mechanism the platform provides for reproducible test execution. For example, Google SecOps SOAR's Playbook Simulator, run against a synthetic or real test case. 
+Record every simulation run and every finding it produced, on whatever mechanism the platform provides for reproducible test execution. For example, Google SecOps SOAR's Playbook Simulator, run against a synthetic or real test case.
 
 Reproducible test runs against a real or synthetic alert or case serve to: 
 1. Prove the playbook does what Sections 1–6 claim it does, deterministically.
