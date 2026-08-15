@@ -43,6 +43,7 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 0.3 | 2026-08-14 | rodajrc | Blocks renamed live to the `Any <stage>` / `GTI-DTM <stage>` convention. Section 5 rewritten around my standing five-stage playbook framework (Case Init -> Scoring -> Prioritization -> Triage -> Specific Response). |
 | 0.4 | 2026-08-14 | rodajrc | Decided `4 Any Alert Triage` should eventually split into a Case Stage Lifecycle block and a Team/Queue Routing block instead of collapsing both through one branch (5.5.1, not built yet). Wrote down the variable sets I need to weigh for each future block. |
 | 0.5 | 2026-08-15 | rodajrc | **First working version**. Triage assignment and Notification's block both confirmed live end-to-end on sample case alert. Notification email rebuilt with a branded HTML template and a dynamic case link using `[General.HostUrl]`, which resolves to Google SecOps instance URL. |
+| 0.6 | 2026-08-15 | rodajrc | Began Section 5 block-by-block walkthrough against the live playbook: 5.1 `1 Any Case Initialization` and 5.2 `1 GTI-DTM Alert Case Initialization` documented, including the live `param_is_slug_monitor_name = 0` config-vs-intent gap. |
 
 ## 1. Objective
 
@@ -121,7 +122,76 @@ Some relevant original fields from product (non-exhaustive, redacted):
 
 ## 5. Modular Technical Implementation
 
-Technical Strategy is enough for now
+Documented block by block against the live working playbook. Blocks not yet walked through are marked pending below.
+
+The **DTM CatchAll** playbook has the following linear history:
+
+> **(1)** *Case Initialization* -> **(2)** *Alert Scoring* -> **(3)** *Alert Prioritization* -> **(4)** *Triage* -> **(5)** *Alert Notification*.
+
+Blocks corresponding to stages **1** and **2** have product-specific subflows. The remaining stages use *catch all* subflows.
+
+Depending on the role and impact each block puts on the use case, precision here is deliberately uneven by design. For instance, the block named `1 Any Case Initialization` is a generic, reusable improvement rather than a requirement of this use case's stated objective, so it gets a lighter pass here. 
+
+The remaining blocks are either DTM-specific or, in the case of `3 Any Alert Prioritization` and `4 Any Alert Triage`, pre-existing generic building blocks this playbook depends on directly, so both of those get full treatment because they are relevant. 
+
+### 5.1 `1 Any Case Initialization`
+
+**Purpose**
+Generic, cross-playbook baseline case setup, not specific to DTM. Determines whether the current alert is the first one grouped into its case and, only on that first alert, runs case-level "`Siemplify - Get Similar Cases`" enrichment. This whole block is an improvement over the stated objective rather than a requirement of it (see Section 7).
+
+**Steps.**
+1. `Tools - Find First Alert` finds the identifier of the first alert grouped into the current case.
+2. `Flow - IfFlowCondition` ("Is First Alert?") compares that result against `[Alert.Identifier]`.
+    - *"Yes"* branch (current alert is the first alert)
+        1. `Siemplify - Get Similar Cases` searches for similar cases matching Rule Generator, Category Outcome, and Entity Identifier, over a 14-day window, across both open and closed cases.
+    - *"Else"* branch (current alert is NOT the first alert) 
+        1. *No action*
+3. *End*
+
+**Input/Output**
+No declared inputs and no execution output. 
+
+**Effect**
+The block's only effect is a case-scoped side effect, the Similar Cases widget, populated only when this is the first alert in the case.
+
+**Error handling**
+None explicit. All actions have `autoSkipOnFailure: false`, so a failure in either action halts this block, and with it the whole playbook.
+
+### 5.2 `1 GTI-DTM Alert Case Initialization`
+
+**Purpose** 
+DTM-specific case enrichment. Captures the raw alert JSON, tags the case, writes a case-level insight, and attaches a severity-triage instruction for DTM Alerts according to [DTM Alert Severity Definitions and Examples](https://gtidocs.virustotal.com/docs/dtm-alert-severity). Improvement beyond the objective since it is not required for the alert prioritization, triage, and notification; however, it is pertinent for post automation handling for the analyst.
+
+**Input/output**
+One declared input, `param_is_slug_monitor_name` (int, 0 or 1), gating whether the block attempts to parse `monitor_name` under the double-hyphen multitenancy slug convention (a custom implementation documented in Google Cloud Security Community [Multi-tenancy on a single Google SecOps](https://security.googlecloudcommunity.com/google-security-operations-2/multi-tenancy-on-a-single-google-secops-part-1-the-isolation-challenge-7789?tid=7789&fid=2)). 
+
+No execution output. All effects are case-scoped writes: the two tag calls, the insight, and the instruction message.
+
+| Parameter Name | Type | Data Type | Description | Default Value |
+|---|---|---|---|---|
+| param_is_slug_monitor_name | Input Parameter | Integer | Whether to enable processing of slug-ed DTM monitor names for extra enrichment. Set to 1 to enable. | 0 (DISABLED) |
+
+**Steps**
+1. `Tools - Get Original Alert Json` pulls the alert's raw JSON. Every downstream field reference in this block reads from its result, so this step is load-bearing for everything after it.
+2. `Siemplify - Case Tag` ("Tag GTI DTM Alert") tags the case `gti:dtm,monitor:<monitor_name>` (trimmed, lowercased), unconditionally.
+3. `Flow - IfFlowCondition` ("Is monitor_name Field Slug-ed?") branches on `[Input.param_is_slug_monitor_name] == 1`.
+    - *"Yes"* branch
+        1. `Siemplify - Case Tag` ("Tag Multi-Tenant Compatible GTI DTM Alert") splits `monitor_name` on double-dashes (`--`) and tags `monitor_tenant` (index 0) and `monitor_type` (index 1).
+    - *"Else"* branch
+        1. *No Action*
+4. Both branches converge on `Siemplify - Add General Insight`, which writes a case HTML insight, as shown below:
+
+![HTML Insight example](/examples/dtm-catchall/static/ss-case-html-insight.png)
+
+5. `Siemplify - Instruction` attaches a plain-text severity-definitions message for the analyst.
+6. *End*
+
+**Error handling** 
+None explicit. All actions have `autoSkipOnFailure: false`, so a failure in either action halts this block, and with it the whole playbook.
+
+### 5.3–5.6 — pending
+
+`2 GTI-DTM Alert Score by Severity`, `3 Any Alert Prioritization`, `4 Any Alert Triage`, and `5 Any Alert Notification` are documented in the following sessions.
 
 ## 6. Playbook Statement
 
@@ -138,7 +208,7 @@ Technical Strategy is enough for now
 
 - **(BLOCK) Any Alert Notification**: Added HTML template for `EmailV2 - Send Email` integration with parameters `param_branding_name` and `param_playbook_name`.
 
-![Screenshot of email sent to sandbox email inbox](/examples/dtm-catchall/static/ss_notification_email_sample.png)
+![Email sent example](/examples/dtm-catchall/static/ss-notification-email-sample.png)
 
 ## 8. Simulation
 
