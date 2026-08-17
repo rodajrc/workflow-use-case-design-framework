@@ -9,11 +9,32 @@ One UCDD per automation use case. A use case may end up implemented as any of th
 
 **This is UCDD Version 1.1**
 
-## How to use this template
+## Document Structure
+
+### Who is this document for?
 
 The structure of this document has been designed to account for multiple consumer roles; namely, **SOC Analysts** that review alerts affected by automation workflows, **Integration Engineers** that care about enabling an automation workflow quickly and effectively in their organizational environment, and **Automation Engineers** deeply intrigued about the technical implementation details of an automation workflow.
 
-Therefore, when **reading** the framework, you're expected to follow along in the order as is. It's built so a reader can stop once their question is answered. For an Integration Engineer and a SOC Analyst, the first five sections tell what the workflow does, how it's configured, what it produces, and what kind of workflow it is. An automation engineer keeps reading into the design and implementation detail that follows to gather more technical insight about the playbook.
+### Sections
+
+1. Workflow Statement
+2. Workflow Objective
+3. Configuration and Deployment
+4. Outcomes and Analysis
+5. Workflow Category
+6. Automation Strategy
+    - 6.1 General Strategy
+    - 6.2 Technical Strategy
+7. Trigger Conditions
+8. Workflow and Subflows
+9. Assumptions
+10. Improvements
+11. Workflow Simulation and Testing
+12. Resources (including Associated ADS)
+
+### Short guide for reading and writing a UCDD
+
+When **reading** the framework, you're expected to follow along in the order as is. It's built so a reader can stop once their question is answered. For an Integration Engineer and a SOC Analyst, the first five sections tell what the workflow does, how it's configured, what it produces, and what kind of workflow it is. An automation engineer keeps reading into the design and implementation detail that follows to gather more technical insight about the playbook.
 
 Conversely, **Writing order** doesn't have to match reading order, and usually won't. A workable draft sequence could begin by settling the Objective and Category first, then deciding the Outcomes and Analysis you're aiming for (deciding what the workflow should produce before deciding how it produces it is equivalent to Test-Driven Development, paired with workflow simulation and tests). Configuration can be drafted here too, if the use case's parameters are already clear at this point. Next, you would draft the Automation Strategy, followed by the next sections in order: Trigger Conditions, Workflow and Subflows, Assumptions, and Improvements, potentially in parallel while the workflow is actually being built, checked continually against the Objective and Category so the build doesn't drift from its own stated goal. Finally, Workflow Tests and Resources accumulate throughout, as things get tested and referenced. Once the workflow is finished, close with a cleanup pass on the first five sections so they read as the finished summary they're meant to be. The Workflow Statement in particular is usually only accurate once written last — it's your executive summary. This isn't a rule, though — you can write the document however is easiest for you.
 
@@ -70,11 +91,11 @@ You can add **tags** in the *summary of changes* column. For example: `config` f
 
 ---
 
-## 1. Playbook Statement
+## 1. Workflow Statement
 
-> **Once the subflows are named, how do they actually compose into the automation described in the [Automation Strategy](#4-automation-strategy) section?**
+> **How the named subflows compose into the automation described in [Automation Strategy](#6-automation-strategy).**
 
-A short paragraph describing the automation strategy in terms of its trigger conditions and subflows that abstract the technical details of the automation workflow.
+A short paragraph describing the automation strategy in terms of its trigger conditions and subflows that abstract the technical details of the automation workflow. In other words, it is the *Executive Summary* of your automation workflow.
 
 Example from [DTM CatchAll](/examples/dtm-catchall/dtm-catchall-secops-soar.md): 
 
@@ -83,9 +104,9 @@ Example from [DTM CatchAll](/examples/dtm-catchall/dtm-catchall-secops-soar.md):
 > **TIP**
 > If it answers *how* the objective gets solved using named pieces, it's doing its job.
 
-## 2. Objective
+## 2. Workflow Objective
 
-> **What (security) challenge do we have that can be solved through automation?**
+> **The (security) challenge this automation solves.**
 
 State the goal in plain language and be precise about the verbs. 
 
@@ -110,9 +131,17 @@ Unfortunately, there's no single formula to write down the objective. However, y
 
 In summary, a well written objective must describe precisely one or many concrete **outcomes** that will lead you throughout the playbook design phase. A clearly defined **scope** that hints at the boundaries of your playbook logic. And finally, the **dependencies**, ideally explicit, that are needed to achieve your outcomes within your scope.
 
-## 3. Categorization
+## 3. Configuration and Deployment
 
-> **What kind of automation is this?**
+TODO
+
+## 4. Outcomes and Analysis
+
+TODO
+
+## 5. Workflow Category
+
+> **The category of this automation workflow.**
 
 For consistency and sharing, I suggest categorizing playbooks as follows:
 
@@ -126,9 +155,9 @@ For consistency and sharing, I suggest categorizing playbooks as follows:
 
 You can use these keywords when categorizing your playbooks in the form of `{structural_role}:{main_functional_goal}`. E.g. `workflow:catch-all` or `subflow:enrichment`.
 
-## 4. Automation Strategy
+## 6. Automation Strategy
 
-> **How is the objective going to be automated?**
+> **A high-level plan for reaching the automation workflow objective.**
 
 Free text. A short plan of the mechanism, before it gets broken into implementation pieces.
 
@@ -160,12 +189,12 @@ When writing your strategy, use text formatting to your own advantage to make th
 
 > **Tip**
 > Begin by writing your *"Strategy Summary"*, as shown above. This is your base strategy, SOAR platform independent. 
-> After the overall idea is set, you can write a more concrete version of that summary: A *"Technical Strategy"*. This is a more precise and rigorous version of your strategy that will deliberately include your SOAR platform vocabulary. But still not as detailed as in Section 6, Modular Technical Implementation. Similar to the standard *Strategy Summary* that guides you on ANY SOAR platform, you want the *Technical Summary* to guide you on your particular SOAR platform.
+> After the overall idea is set, you can write a more concrete version of that summary: A *"Technical Strategy"*. This is a more precise and rigorous version of your strategy that will deliberately include your SOAR platform vocabulary. But still not as detailed as in Section 8, Workflow and Subflows. Similar to the standard *Strategy Summary* that guides you on ANY SOAR platform, you want the *Technical Summary* to guide you on your particular SOAR platform.
 > The benefit of dividing your strategy in two layers is big! If you end up discovering that a technical claim you made was not supported by your platform, you can simply update that section in your *Technical Strategy* while keeping the base strategy intact! Also, your base strategy is portable between SOAR platforms.
 
-## 5. Trigger and Execution Priority
+## 7. Trigger Conditions
 
-> **What conditions have to occur for your workflow to run?**
+> **The conditions that have to occur for the workflow to run.**
 
 State the trigger conditions. Usually, a workflow will run after receiving an alert under the following scopes:
 
@@ -182,7 +211,7 @@ If the workflow is conditioned on a particular product or alert, you should incl
 
 Finally, trigger conditions should account for false-positive execution as well. You can reduce false-positives by checking unique identifying fields. E.g. `vendor_name`, `product_id`, or `alert_id` field. 
 
-Workflows can also be prioritized. Usually, the more specific the playbook, the narrower is the scope.
+Some SOAR platforms also allow for workflow prioritization. Usually, the more specific the playbook trigger is, the higher its priority.
 
 - **Priority 1** — (`SPECIFIC_ALERT`) Only for deterministic automation or alert-specific incident handling. The most targeted match available for this exact condition. Anything is more specific than this playbook!
 - **Priority 2** — (`PRODUCT_SPECIFIC`) This is for product-specific automation. Matches a whole product or alert family, broader than Priority 1 but not a last resort.
@@ -199,16 +228,16 @@ Explain briefly the trigger conditions here. Include a sample of the original al
 - **Reason**: Why that priority?
 ```
 
-## 6. Modular Technical Implementation
+## 8. Workflow and Subflows
 
-> **What's the skeleton of your automation workflow?**
+> **The skeleton of the automation workflow.**
 
 This section is about breaking the final playbook into its overall compounding elements.
 
 For each subflow, name it and state what it does. This is also where platform-specific details belong. For example, on Google SecOps SOAR, that means naming the actual integration actions and configurations each subflow will call.
 
 > **Note**
-> As you develop your playbook, you may determine that another subflow is needed, or is not needed but good to have. You can also include those extra subflows as long as they don't break your original strategy. You should document those *"extra"* blocks in the *Assumptions and Improvements* section as well.
+> As you develop your playbook, you may determine that another subflow is needed, or is not needed but good to have. You can also include those extra subflows as long as they don't break your original strategy. You should document those *"extra"* blocks in the *Improvements* section as well.
 
 You must document all input and output parameters of your subflows, if any. This is very important for the parameterization principle. Importantly, many SOAR platforms support outputting data in two main ways:
 - **Execution output**: The subflow specifies the data model will output. You usually use this output when you need to feed another block or action downstream in the workflow logic.
@@ -220,7 +249,7 @@ You must document all input and output parameters of your subflows, if any. This
 > **Tip**
 > I found that the *Strategy Summary* and *Technical Strategy* in the previous sections are enough (if written properly) to start working on your playbook.
 > You can safely skip this section until you have a working version of your playbook. At that point, you walkthrough every one of your blocks to describe their functionality.
-> You can also fill this section as you build the playbook, making sure you are aligned with what you described in your *Strategy Summary*. At the same time, work on **Section 7** to document any Assumption you made and Improvement you added while making your playbook.
+> You can also fill this section as you build the playbook, making sure you are aligned with what you described in your *Strategy Summary*. At the same time, work on **Sections 9 and 10** (Assumptions and Improvements) to document any Assumption you made and Improvement you added while making your playbook.
 
 Finally, for each action in your subflows, you MUST consider **error handling**.
 
@@ -238,33 +267,43 @@ For your reference, here is a list of recurring failure classes worth checking a
 > **Note**
 > A shared taxonomy of failure classes across use cases would make this section more consistent and is worth developing once enough UCDDs exist to generalize from.
 
-## 7. Assumptions and Improvements
+## 9. Assumptions
 
-> **What did the Modular Technical Implementation take for granted?**
+> **The decisions, actions, and logic you took for granted when designing the workflow and subflows.**
 
 List them explicitly. An assumption that later turns out false is expected, but an assumption nobody wrote down is a design gap.
 
-You can also list any added logic you included to optimize, improve, or enhance the main outcome. For example, baseline case enrichment is a typical flow that is added to every workflow that is not inherently necessary to achieve the main goal.
+## 10. Improvements
 
-## 8. Simulation
+> **Added logic that optimizes, improves, or enhances the workflow's outcome beyond what the objective strictly requires.**
 
-> **What actual test runs have been done, and what did they show?**
+List any added logic you included to optimize, improve, or enhance the main outcome. 
 
-Record every simulation run and every finding it produced, on whatever mechanism the platform provides for reproducible test execution. For example, Google SecOps SOAR's Playbook Simulator, run against a synthetic or real test case.
+For example, baseline case enrichment is a typical subflow added at the beginning of every workflow, which is not typically a requirement to achieve the main goal. However, it extends the outcome by granting the analyst information about related cases.
+
+Improvements can also come in the form of refactoring, error-handling, and optimization for short-circuiting logic.
+
+## 11. Workflow Simulation and Testing
+
+> **Tests and their results.**
+
+Record every simulation run and every finding it produced, on whatever mechanism the platform provides for reproducible test execution. 
+
+For example, Google SecOps SOAR provides the Playbook Simulator that permits testing a playbook against a synthetic or real test case.
 
 Reproducible test runs against a real or synthetic alert or case serve to: 
-1. Prove the playbook does what Sections 1–6 claim it does, deterministically.
-2. Identify hardcoded settings that can be parameterized.
-3. Find issues that can feed back into earlier sections rather than living only as a test log.
+1. Prove the playbook produces the documented outcome within scope, deterministically with the proper dependencies.
+2. Identify hardcoded settings that can be parameterized by testing in different environments with different cases and alerts.
+3. Find issues in the automation workflow logic that can be improved or documented as assumptions.
 
-When testing, make sure to save the synthetic alert or cases you used.
+When testing, make sure to save the synthetic alert or cases you used for accountability and reproducibility.
 
 > **Warning**
 > If using real cases and alerts for testing, make sure to always validate you are not sharing sensitive information. 
 
-## 9. Resources
+## 12. Resources
 
-> **What did you use to build this, and where can someone verify it?**
+> **Information used to inform the design of the use case automation workflow.**
 
 Any reference used to design or implement this use case:
 
@@ -274,7 +313,9 @@ Any reference used to design or implement this use case:
 
 Cross-reference by section where useful, rather than leaving one undifferentiated list at the end.
 
-## 10. Associated ADS
+### Associated ADS
+
+> **Optional sub-section for cross-referencing an Alerting Detection Strategy document.**
 
 Palantir's [ADS-Framework](https://github.com/palantir/alerting-detection-strategy-framework/blob/master/ADS-Framework.md) has a **Response** section that can be linked from this file.
 
