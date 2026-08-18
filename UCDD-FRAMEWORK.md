@@ -23,14 +23,12 @@ The structure of this document has been designed to account for multiple consume
 4. Outcomes and Analysis
 5. Workflow Category
 6. Automation Strategy
-    - 6.1 General Strategy
-    - 6.2 Technical Strategy
 7. Trigger Conditions
 8. Workflow and Subflows
 9. Assumptions
 10. Improvements
 11. Workflow Simulation and Testing
-12. Resources (including Associated ADS)
+12. Resources
 
 ### Short guide for reading and writing a UCDD
 
@@ -161,7 +159,40 @@ You can write this section as shown below:
 
 ## 4. Outcomes and Analysis
 
-TODO
+> **What this workflow produces for the analyst, and what decisions still need a human.**
+
+Document everything a SOC Analyst needs to know when they open a case or alert this workflow has affected: what analysis has already been done on their behalf, what artifacts the workflow leaves behind, and which decisions still require a human.
+
+**I. Automated Outcomes**
+
+List every artifact the workflow produces without human input: case comments, tags, insights, scores written to the shared case or alert context, and any notification sent. You want to be precise about these effects so the analyst can quickly adjust their process and use them effectively. You don't want an analyst trying to decipher what your playbook did to their case or alert.
+
+> **Tip**
+> Add an automation action that includes the UCDD in the alert or case context, so the analyst can find it quickly.
+
+**II. Human-in-the-Loop Actions**
+
+List every decision or manual step the workflow leaves for the analyst: a pending action awaiting approval, a manual escalation step, or a judgment call the automation deliberately doesn't make because it requires that *"human touch"*. State what triggers it and what the analyst is expected to do.
+
+**III. Platform-Native Enhancements**
+
+Some SOAR platforms let you configure a richer, purpose-built interface for the analyst to review your alert. Document whether one exists for this use case and what it's meant to help the analyst see faster.
+
+You can write this section as shown below:
+
+```md
+**Automated Outcomes**
+- `<artifact>`: What it tells the analyst, and where they'll find it.
+
+**Human-in-the-Loop Actions** (OPTIONAL)
+- `<action>`: What triggers it, and what the analyst is expected to do.
+
+**Platform-Native Enhancements** (OPTIONAL)
+- `<enhancement name>`: What it's meant to help the analyst see faster, if configured.
+```
+
+> **Note**
+> This section should read more like a briefing than a spec. An analyst opening this UCDD wants *"here's what's already been done for you, and here's what you still need to decide."*
 
 ## 5. Workflow Category
 
@@ -169,7 +200,7 @@ TODO
 
 For consistency and sharing, I suggest categorizing playbooks as follows:
 
-- **By structural role:** A *Workflow*, usually the entry point for an incident handling playbook or a complex automation use case (also receives the name of *Playbook*) or a *Subflow*, usually invoked by another playbook, chained or attached, with its own input/output contract (also receives the name of *Block*). Most SOAR platforms distinguish these two roles in some form at the object level, even where the exact terminology differs.
+- **By structural role:** A *Workflow* is usually the entry point for an incident handling playbook or a complex automation use case, also called a *Playbook*. A *Subflow* is usually invoked by a workflow, chained or attached, optionally with its own input/output contract. It is also called a *Block*. Most SOAR platforms distinguish these two roles in some form at the object level, even where the exact terminology differs.
 - **By functional goal:** Some examples include:
     - `enrichment` (attaching context before a human or another flow sees the alert)
     - `triage` (assessing and scoring severity)
@@ -183,63 +214,60 @@ You can use these keywords when categorizing your playbooks in the form of `{str
 
 > **A high-level plan for reaching the automation workflow objective.**
 
-Free text. A short plan of the mechanism, before it gets broken into implementation pieces.
+Write a short plan of the mechanism in free text, before it gets broken down into implementation pieces. 
 
-Here you can describe a bit more precisely the scope and dependencies of your automation goal, without being too rigorous about the specific technical details of your SOAR platform. Why? This is the *"north star"* you (and others) will use when mapping the idea to an actual SOAR platform.
+You begin by describing, in plain language, how the objective is going to be automated, along with the scope and dependencies of the goal, without being rigorous about the specific technical details of your SOAR platform. This is the *"north star"* you (and others) will use when mapping the idea to an actual SOAR platform. 
 
-The following example is a strategy summary for a DTM CatchAll playbook example I built in Google SecOps SOAR.
+You want to keep this section deliberately as vendor neutral as possible, to make it portable. The Automation Strategy **MUST** read the same regardless of which SOAR platform that eventually implements it, even if the technical details are slightly different between instances.
 
-> **Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring (DTM)* (product) alert. **Score** the alert using DTM *"Alert Severity Definitions"*. **Prioritize** the alert using the calculated scores. **Triage** the case to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
+Here is an example:
 
-When writing your strategy, use text formatting to your own advantage to make the strategy clearer. Moreover, use one sentence to describe a potential subflow within the workflow.
+> **Trigger** on any *{threat-intelligence feed}* (vendor) *{alert type}* (product) alert. **Score** the alert using the feed's native severity definitions. **Prioritize** the alert using the calculated scores. **Triage** the case to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
 
-1. I used **bold text** to represent **verbs** that lead to **outcomes** in the automation. In the example above, I have the following verbs that define each stage of the workflow:
-    - Trigger condition
-    - Score
-    - Prioritize
-    - Triage
-    - Notify
+Note that mentioning the vendor and product of the alert that the playbook consumes, or the explicit Telegram integration mention, **is not** a contradiction to the portability claim. Moreover, when writing your strategy, use text formatting to your own advantage to make it clearer:
 
-2. I used *Italics* to highlight *data sources* and *SOAR components*:
-    - Google Threat Intelligence (data source vendor)
-    - Digital Threat Monitoring (data source product)
-    - Alert Severity Definitions (GTI's built-in alert severity)
-    - Email Integration
-    - Telegram Integration
+1. Use **bold text** for the **verbs** that lead to **effects** and **outcomes**. In the example above, these are: Trigger, Score, Prioritize, Triage, Notify.
+2. Use *Italics* to highlight *data sources* and *SOAR components*, such as the feed vendor, the feed product, its severity definitions, and the integration names used.
+3. Each sentence describes a potential subflow. *"Score the alert using the feed's native severity"* is an alert-scoring subflow; *"Notify the SOC team by email and, optionally, Telegram"* is a notification subflow that explicitly states Telegram is optional (parameterizable to be enabled or not).
 
-3. Finally, each sentence describes a potential subflow:
-    - *"Score the alert using DTM's Alert Severity Definitions"* is an alert scoring subflow.
-    - *"Notify the SOC team leveraging EmailV2 and, optionally, Telegram integrations"* is a notification subflow that explicitly states that Telegram is optional (parameterizable to be enabled or not)
+### Optional Technical Strategy
 
-> **Tip**
-> Begin by writing your *"Strategy Summary"*, as shown above. This is your base strategy, SOAR platform independent. 
-> After the overall idea is set, you can write a more concrete version of that summary: A *"Technical Strategy"*. This is a more precise and rigorous version of your strategy that will deliberately include your SOAR platform vocabulary. But still not as detailed as in Section 8, Workflow and Subflows. Similar to the standard *Strategy Summary* that guides you on ANY SOAR platform, you want the *Technical Summary* to guide you on your particular SOAR platform.
-> The benefit of dividing your strategy in two layers is big! If you end up discovering that a technical claim you made was not supported by your platform, you can simply update that section in your *Technical Strategy* while keeping the base strategy intact! Also, your base strategy is portable between SOAR platforms.
+After the General Strategy is set, you can write a more concrete version called *Technical Strategy*, which deliberately includes your SOAR platform's vocabulary, like the actual in-platform integration names, automated action names, and vendor-specific mechanics, while still not as detailed as the block-by-block breakdown in [Workflow and Subflows](#8-workflow-and-subflows).
+
+> **Note**
+> You can see [a worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md) for a Technical Strategy written out for a real SOAR platform.
+
+> **Note**
+> The benefit of dividing your strategy is that the *General Strategy* guides any implementation, while the *Technical Strategy* guides your implementation.
 
 ## 7. Trigger Conditions
 
 > **The conditions that have to occur for the workflow to run.**
 
-State the trigger conditions. Usually, a workflow will run after receiving an alert under the following scopes:
+A workflow will run in any of the following general scenarios:
 
-- Trigger by *ANY* alert
-- Trigger by a *VENDOR_SPECIFIC* alert
-- Trigger by a *PRODUCT_SPECIFIC* alert
-- Trigger by an *SPECIFIC_ALERT* 
+- Trigger by *ANYTHING*
+- Trigger by *VENDOR*
+- Trigger by *PRODUCT* from Vendor
+- Trigger by *ALERT* from Product
+- Trigger by *EVENT* from Alert
 
-If the workflow is unconditioned, your playbook MUST not depend on any original alert field.
+Each level has its own drawbacks and characteristics:
 
-If the workflow is conditioned on a particular vendor alert, you should include a sample of the standardized fields of the original alerts that can be originated by all products offered by that vendor. This is often too hard and time-consuming to do and often is too broad; hence, I'd suggest moving to the next trigger scope unless you have a very particular reason to remain vendor scoped.
+- Playbooks that trigger on *ANYTHING* **MUST NOT** depend on any original alert field. It is usually referred to as the *Fallback Playbook*.
+- Playbooks that trigger on any alert of a specific *VENDOR* **MUST** include a sample of the fields shared by every product that vendor offers. This is usually too broad to be practical.
+- Playbooks that trigger on any alert of a specific *PRODUCT* **MUST** include a sample of the fields shared by that specific product. This is usually broad enough to be practical for *Catch All Playbooks*.
+- **ALERT** or **EVENT** specific playbooks often trigger by the identifier or name of the original alert or event. These are usually specific enough to be practical for *Incident Response Playbooks*.
 
-If the workflow is conditioned on a particular product or alert, you should include an example of an original alert of that product.
+Whatever the level below *ANYTHING*, check for unique identifying fields (e.g. `vendor_name`, `product_id`, `alert_id`, `event_id`) to guard against false-positive execution.
 
-Finally, trigger conditions should account for false-positive execution as well. You can reduce false-positives by checking unique identifying fields. E.g. `vendor_name`, `product_id`, or `alert_id` field. 
+Some SOAR platforms also allow for workflow prioritization. As a rule of thumb, the more specific the playbook is, the higher its priority.
 
-Some SOAR platforms also allow for workflow prioritization. Usually, the more specific the playbook trigger is, the higher its priority.
-
-- **Priority 1** — (`SPECIFIC_ALERT`) Only for deterministic automation or alert-specific incident handling. The most targeted match available for this exact condition. Anything is more specific than this playbook!
-- **Priority 2** — (`PRODUCT_SPECIFIC`) This is for product-specific automation. Matches a whole product or alert family, broader than Priority 1 but not a last resort.
-- **Priority 3** — (`VENDOR_SPECIFIC` or `ANY`) For fallback or catch-all logic. Fires only when nothing more specific claimed the alert.
+- **Priority 1** — (`EVENT`) Only for deterministic automation or event-specific incident handling. The most targeted match available for this exact condition. Anything is more specific than this playbook!
+- **Priority 2** — (`ALERT`) Matches one specific alert type. Broader than event-based trigger playbooks, but still narrow enough to be deterministic.
+- **Priority 3** — (`PRODUCT`) Matches every alert type a given product can raise. Suitable for Catch All logic.
+- **Priority 4** — (`VENDOR`) Matches every alert any product from a given vendor can raise. Rarely practical.
+- **Priority 5** — (`ANYTHING`) For Fallback logic. Fires only when nothing more specific claimed the alert.
 
 You can write this section as shown below:
 
@@ -256,30 +284,26 @@ Explain briefly the trigger conditions here. Include a sample of the original al
 
 > **The skeleton of the automation workflow.**
 
-This section is about breaking the final playbook into its overall compounding elements.
+This section breaks the final playbook into its constituent elements.
 
-For each subflow, name it and state what it does. This is also where platform-specific details belong. For example, on Google SecOps SOAR, that means naming the actual integration actions and configurations each subflow will call.
+**I. Subflow Breakdown** 
 
-> **Note**
-> As you develop your playbook, you may determine that another subflow is needed, or is not needed but good to have. You can also include those extra subflows as long as they don't break your original strategy. You should document those *"extra"* blocks in the *Improvements* section as well.
+For each subflow, name it and state what it does. You want to include platform-specific detail here, like the integration actions and configurations each subflow calls.
 
-You must document all input and output parameters of your subflows, if any. This is very important for the parameterization principle. Importantly, many SOAR platforms support outputting data in two main ways:
-- **Execution output**: The subflow specifies the data model will output. You usually use this output when you need to feed another block or action downstream in the workflow logic.
-- **Case or Alert database**: Most SOAR and DFIR platforms support adding context in case or alert scoped variables. In comparison to programming terms, these would be like global variables. You usually use this type of output when you want to store something accessible for the analyst as well.
+**II. Input/Output Documentation** 
+
+You must document all input and output parameters of your subflows, if any. This is very important for the parameterization principle. 
+
+Most SOAR platforms support feeding and returning data in two main ways:
+- **Execution output**: The subflow specifies the data model it will receive and return. You usually use this when you need to feed another block or action downstream in the workflow logic.
+- **Case or Alert database**: SOAR and DFIR platforms often support adding context in case- or alert-scoped variables. In programming terms, these are like global variables. You usually use this type of output when you want to store something accessible for the analyst as well.
 
 > **Tip**
-> A consistent naming convention makes a parameter's role obvious at a glance. As one example, not a requirement: the DTM CatchAll reference implementation prefixes call-site-configurable inputs with `param_` (e.g. `param_investigation_team`) and fixed, rarely-changed constants with `CONST_` (e.g. `CONST_CONTEXT_ALERT_SEVERITY`). Pick whatever scheme keeps intent legible in your own UCDDs.
+> A consistent naming convention makes a parameter's role obvious at a glance. See [a worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md) for this convention applied throughout a real UCDD.
 
-> **Tip**
-> I found that the *Strategy Summary* and *Technical Strategy* in the previous sections are enough (if written properly) to start working on your playbook.
-> You can safely skip this section until you have a working version of your playbook. At that point, you walkthrough every one of your blocks to describe their functionality.
-> You can also fill this section as you build the playbook, making sure you are aligned with what you described in your *Strategy Summary*. At the same time, work on **Sections 9 and 10** (Assumptions and Improvements) to document any Assumption you made and Improvement you added while making your playbook.
+**III. Error Handling**
 
-Finally, for each action in your subflows, you MUST consider **error handling**.
-
-**Which actions in this workflow and subflows are subject to failure, and what happens when they fail?**
-
-List the actions that can realistically error, and what the playbook does about it. Throwing an error and halting the operation of the playbook is acceptable only if there's a good reason for it. 
+You **MUST** consider error handling for each action in your subflows. *What actions are subject to failure and what happens when they do?* List the actions that can realistically error, and what the playbook does about it. Accepting the risk, throwing an error, and halting the playbook are all acceptable responses, given a good reason.
 
 For your reference, here is a list of recurring failure classes worth checking against every action: 
 - `API_RATE_LIMIT`, when your integration action requires talking to a third-party tool and you reach an API rate limit or block.
@@ -288,42 +312,39 @@ For your reference, here is a list of recurring failure classes worth checking a
 - `MALFORMED_DATA`, when the data you expect from an alert or a previous integration action is not what you expected.
 - `SYSTEM_ERROR`, when the SOAR platform or the third-party platform fails.
 
-> **Note**
-> A shared taxonomy of failure classes across use cases would make this section more consistent and is worth developing once enough UCDDs exist to generalize from.
-
 ## 9. Assumptions
 
 > **The decisions, actions, and logic you took for granted when designing the workflow and subflows.**
 
-List them explicitly. An assumption that later turns out false is expected, but an assumption nobody wrote down is a design gap.
+List assumptions taken during playbook development explicitly. For example, expecting a specific data input format in your subflows, believing in the stability of third-party integrations and APIs, or trusting automated assessments and judgments made from evidence collected through enrichment.
+
+Here are some examples of assumptions you can document:
+
+- Assume that *all original alerts from a product have the same schema*. Even if true today, it may only hold for the current version of that third-party product. A later release may update the alert schema inadvertently.
+- Assume that *adding a new firewall rule is enough to isolate a host for effective containment*. Not all hosts are weighted equally; some may run business-critical services your organization may not want isolated that way. Moreover, just adding a firewall rule may not be enough to isolate a host safely.
 
 ## 10. Improvements
 
 > **Added logic that optimizes, improves, or enhances the workflow's outcome beyond what the objective strictly requires.**
 
-List any added logic you included to optimize, improve, or enhance the main outcome. 
+List any added logic you included to optimize, improve, or enhance the main outcome. For example, adding extra functionality to a subflow, including error-handling for risky actions, or optimizing workflows with short-circuiting logic.
 
-For example, baseline case enrichment is a typical subflow added at the beginning of every workflow, which is not typically a requirement to achieve the main goal. However, it extends the outcome by granting the analyst information about related cases.
+Here are some examples of improvements you can document:
 
-Improvements can also come in the form of refactoring, error-handling, and optimization for short-circuiting logic.
+- A *baseline case enrichment* subflow typically chained at the beginning of every workflow. It extends the outcome by granting the analyst information about related cases.
+- A *customized case or alert view*, a feature often provided by SOAR and DFIR platforms, that allows automation engineers to build panels and dashboards from source code such as HTML or a proprietary language. It helps analysts by presenting the information they need in a clear, purpose-built interface.
 
 ## 11. Workflow Simulation and Testing
 
 > **Tests and their results.**
 
-Record every simulation run and every finding it produced, on whatever mechanism the platform provides for reproducible test execution. 
+Record every simulation run and every finding it produced, on whatever mechanism the platform provides for reproducible test execution. For the purposes of the UCDD, keep a record of the latest test that ran successfully end-to-end and the conditions under which it ran, though you can still keep detailed logs of every test while developing including those of individual subflows.
 
-For example, Google SecOps SOAR provides the Playbook Simulator that permits testing a playbook against a synthetic or real test case.
-
-Reproducible test runs against a real or synthetic alert or case serve to: 
-1. Prove the playbook produces the documented outcome within scope, deterministically with the proper dependencies.
-2. Identify hardcoded settings that can be parameterized by testing in different environments with different cases and alerts.
-3. Find issues in the automation workflow logic that can be improved or documented as assumptions.
-
-When testing, make sure to save the synthetic alert or cases you used for accountability and reproducibility.
+> **Tip**
+> Save the alert or cases you used for testing for accountability and reproducibility.
 
 > **Warning**
-> If using real cases and alerts for testing, make sure to always validate you are not sharing sensitive information. 
+> If using real alerts and cases, redact first! Make sure you are not sharing sensitive information. 
 
 ## 12. Resources
 
@@ -333,9 +354,7 @@ Any reference used to design or implement this use case:
 
 - Vendor documentation for the specific actions and platform features involved.
 - Community guidance and posts.
-- Related UCDDs this one depends on or was adapted from.
-
-Cross-reference by section where useful, rather than leaving one undifferentiated list at the end.
+- Related UCDDs this one depends on (most likely subflow UCDDs).
 
 ### Associated ADS
 
