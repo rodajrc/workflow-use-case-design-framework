@@ -95,45 +95,69 @@ You can add **tags** in the *summary of changes* column. For example: `config` f
 
 > **How the named subflows compose into the automation described in [Automation Strategy](#6-automation-strategy).**
 
-A short paragraph describing the automation strategy in terms of its trigger conditions and subflows that abstract the technical details of the automation workflow. In other words, it is the *Executive Summary* of your automation workflow.
+A short paragraph describing the automation's trigger conditions and subflows in plain terms, abstracted away from technical detail. This is the *Executive Summary* of the workflow.
 
-Example from [DTM CatchAll](/examples/dtm-catchall/dtm-catchall-secops-soar.md): 
+Here is an example of a Workflow Statement:
 
-*DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`1 Any Case Initialization`** runs a generic case setup, followed by **`1 GTI-DTM Alert Case Initialization`** that runs DTM-specific case enrichment. Next, **`2 GTI-DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's context. Next, **`3 Any Alert Prioritization`** reads that score and sets the case's real, native `Alert.Priority` field. **`4 Any Alert Triage`** reads the resulting priority to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`5 Any Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
+> *The workflow* triggers on any *{Threat-Intelligence feed or platform name}* alert that carries a non-empty `monitor_id` and `monitor_name` field on its original alert. On execution, **`Generic Case Initialization`** runs a generic case setup, followed by **`Product-Specific Alert Case Initialization`** that runs source-specific case enrichment. Next, **`Product-Specific Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's context. Next, **`Generic Alert Prioritization`** reads that score and sets the case's SOAR-platform-native *Alert Priority*. **`Generic Alert Triage`** reads the resulting priority to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case's SOAR-platform-native stage. Finally, **`Generic Alert Notification`** reads the Alert's assigned priority against a configurable gate that evaluates the alert severity and analyst queue and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.
 
-> **TIP**
-> If it answers *how* the objective gets solved using named pieces, it's doing its job.
+> **Note**
+> This *Workflow Statement* was adapted from a [worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md).
+
+This section **MUST** answer *how* the named building blocks described in the [Workflow and Subflows](#8-workflow-and-subflows) section align with the [Workflow Objective](#2-workflow-objective).
 
 ## 2. Workflow Objective
 
 > **The (security) challenge this automation solves.**
 
-State the goal in plain language and be precise about the verbs. 
+State the goal in plain language, precise about the verbs, covering three things: one or more concrete **outcomes** the automation delivers, the **scope** that bounds it, and the **dependencies**, ideally explicit, needed to achieve those outcomes within that scope.
 
-**Vague goals produce vague playbooks**. For example: *"Handle all alerts"* is a bad objective, not because *"all alerts"* is incorrect (that's a *fallback* workflow) but because the word *"handle"* hinders what you really mean: Is it closing the alert automatically? or communicating it to someone? or prioritizing it for triage? 
+### How to write a clear automation workflow objective?
 
-A good objective either picks one of those precisely, or explicitly scopes in all of them as distinct outcomes. For example: *"Notify the incident responder of all their tenant scoped alerts"* is slightly better because it clearly defines the **scope** (all tenant-bound alerts) and the **outcome** (notification specifically to the incident responder) of the use case.
+**Vague goals produce vague playbooks!**
 
-Even better is the following example: *"Notify the incident response team of all their prioritized tenant scoped alerts through alert scoring and prioritization"*. This example is great because it clearly states the **scope** (all prioritized tenant-bound alerts), the **outcome** (notification specifically to the incident response team), and the **dependencies** that are needed to meet the result (alert triage requires alert scoring and prioritization).
+For example: *"Handle all alerts"* is a bad objective, not because *"all alerts"* is incorrect (that's a *fallback* workflow) but because the word *"handle"* hinders what you really mean: Is it closing the alert automatically? or communicating it to someone? or prioritizing it for triage? 
 
-Here's the full objective I would write for an automation use case:
+A good objective either picks one of those **"outcomes"** precisely, or explicitly takes in all of them as distinct outcomes. For example: *"Triage and notify all alerts"* is slightly better because it clearly defines two outcomes, which are triaging and communicating the alert. 
 
-> Notify the suitable incident response team tier through alert assessment and prioritization of alerts originated by Google Threat Intelligence Digital Threat Monitoring (DTM).
+You can improve further by defining boundaries: *"Notify all prioritized alerts to the optimal Incident Response Team about leaked credentials and data exposure in the dark web"* is better because it frames clearly who is going to be notified about which alerts under what conditions. We call this property the **scope** of the objective. Notice that this new objective now describes *Notification* as the *main outcome*, while *Triage* has become an explicit *scope* condition referencing the *Incident Response Team*. 
 
-Unfortunately, there's no single formula to write down the objective. However, you don't have to write it as a sentence either. You can simply list the aspects of your objective. For example:
+We can improve further by including explicit **dependencies**. *"Notify all prioritized alerts from an external threat-intelligence feed to the optimal Incident Response Team about leaked credentials and data exposure in the dark web by assessing the incident through alert scoring by native severity and risk entities"*. This is a great example because it clearly states the **dependencies** that are needed to achieve the objective within scope.
 
-- **Outcome**: Notification of all prioritized alerts to the triaged IR team
-- **Scope**: All GTI DTM alerts
-- **Dependencies**: Triage of DTM alerts requires assessing the alerts (two methods: Built-in DTM Alert Severity or IoC from Entity Enrichment).
+Here's the objective laid out in full:
 
-> **Note**
-> The list method allowed us to describe further the assessment methodology as well (built-in severity and IoC).
+> Notify all prioritized alerts from an external threat-intelligence feed to the optimal Incident Response Team about leaked credentials and data exposure in the dark web by assessing the incident through alert scoring by native severity and risk entities
 
-In summary, a well written objective must describe precisely one or many concrete **outcomes** that will lead you throughout the playbook design phase. A clearly defined **scope** that hints at the boundaries of your playbook logic. And finally, the **dependencies**, ideally explicit, that are needed to achieve your outcomes within your scope.
+You can also describe the same goal by listing its properties, as shown below:
+
+> - **Outcome**: Notification and Triage of all prioritized threat-intel-feed alerts to the optimal IR Team
+> - **Scope**: Threat-intel-feed alerts that are prioritized through the alert scoring process by assessing the original alert severity and entity risk score
+> - **Dependencies**: The external threat-intelligence feed, and Alert Scoring from Alert Severity and Entity Risk Scores (Verdict and Severity)
 
 ## 3. Configuration and Deployment
 
-TODO
+> **What must be configured or deployed before this workflow can run in a tenant.**
+
+Document everything an Integration Engineer needs to enable this workflow in a new environment. Usually, these are the third-party integrations the workflow depends on, and the parameters it exposes for an organization to tune without editing the workflow or subflow logic itself (Parameterization).
+
+**Integrations** are all third-party tools or services this workflow connects to. You want to be explicit about the integrations that are required for the playbook to run and the integrations that are optional.
+
+**Configurable Parameters** are the variables an integration engineer is expected to tune for their own environment, in plain language, the way you'd document a function's arguments in a comment. E.g., what the parameter controls, and why someone would change it. This is deliberately lighter than the input and output details in [Workflow and Subflows](#8-workflow-and-subflows), which very precisely describes a workflow and subflow's technical data contract for whoever is maintaining the workflow. This, in contrast, documents what a non-technical integrator is actually free to change.
+
+> **Note**
+> Every platform exposes configurability differently: dedicated playbook input parameters, environment variables, global data tables, or values hardcoded into an action that the organization is expected to edit directly. Document whichever mechanism your platform gives you; what matters is capturing every knob an organization can turn, not which primitive it uses.
+
+You can write this section as shown below:
+
+```md
+**Integrations**
+- `<integration name>`: Description
+- `Example Integration Name`: (OPTIONAL) This integration adds bonus functionality. Your playbook still runs fine without it, just with less magic.
+
+**Configurable Parameters**
+- `<parameter name>` [DATA TYPE]: What it controls, and why you might change it. Default: `<value>`.
+- `parameter_example_name` [INT(0,1)]: Enable or disable this magic parameter. Default: 1
+```
 
 ## 4. Outcomes and Analysis
 
