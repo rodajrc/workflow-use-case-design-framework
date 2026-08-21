@@ -22,8 +22,8 @@ The structure of this document has been designed to account for multiple consume
 3. Configuration and Deployment
 4. Outcomes and Analysis
 5. Workflow Category
-6. Automation Strategy
-7. Trigger Conditions
+6. Trigger Conditions
+7. Automation Strategy
 8. Workflow and Subflows
 9. Assumptions
 10. Improvements
@@ -34,7 +34,7 @@ The structure of this document has been designed to account for multiple consume
 
 When **reading** the framework, you're expected to follow along in the order as is. It's built so a reader can stop once their question is answered. For an Integration Engineer and a SOC Analyst, the first five sections tell what the workflow does, how it's configured, what it produces, and what kind of workflow it is. An automation engineer keeps reading into the design and implementation detail that follows to gather more technical insight about the playbook.
 
-Conversely, **Writing order** doesn't have to match reading order, and usually won't. A workable draft sequence could begin by settling the Objective and Category first, then deciding the Outcomes and Analysis you're aiming for (deciding what the workflow should produce before deciding how it produces it is equivalent to Test-Driven Development, paired with workflow simulation and tests). Configuration can be drafted here too, if the use case's parameters are already clear at this point. Next, you would draft the Automation Strategy, followed by the next sections in order: Trigger Conditions, Workflow and Subflows, Assumptions, and Improvements, potentially in parallel while the workflow is actually being built, checked continually against the Objective and Category so the build doesn't drift from its own stated goal. Finally, Workflow Tests and Resources accumulate throughout, as things get tested and referenced. Once the workflow is finished, close with a cleanup pass on the first five sections so they read as the finished summary they're meant to be. The Workflow Statement in particular is usually only accurate once written last — it's your executive summary. This isn't a rule, though — you can write the document however is easiest for you.
+Conversely, **Writing order** doesn't have to match reading order, and usually won't. A workable draft sequence could begin by settling the Objective and Category first, then deciding the Outcomes and Analysis you're aiming for (deciding what the workflow should produce before deciding how it produces it is equivalent to Test-Driven Development, paired with workflow simulation and tests). Configuration can be drafted here too, if the use case's parameters are already clear at this point. Next, you would draft the Trigger Conditions, since the original alert schema they surface is what the Automation Strategy that follows can then draw on, followed by the remaining sections in order: Workflow and Subflows, Assumptions, and Improvements, potentially in parallel while the workflow is actually being built, checked continually against the Objective and Category so the build doesn't drift from its own stated goal. Finally, Workflow Tests and Resources accumulate throughout, as things get tested and referenced. Once the workflow is finished, close with a cleanup pass on the first five sections so they read as the finished summary they're meant to be. The Workflow Statement in particular is usually only accurate once written last — it's your executive summary. This isn't a rule, though — you can write the document however is easiest for you.
 
 ---
 
@@ -72,7 +72,7 @@ related_flows: ["related_chained_subflow_1", "related_chained_subflow_2", "relat
 
 ## Version history
 
-Every non-trivial change to this document or to the playbook it describes, including continuous improvement recorded after go-live.
+Every non-trivial change to this document or to the playbook it describes, including continuous improvement recorded after go-live. You can place this section at the end of the document as well.
 
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
@@ -91,9 +91,9 @@ You can add **tags** in the *summary of changes* column. For example: `config` f
 
 ## 1. Workflow Statement
 
-> **How the named subflows compose into the automation described in [Automation Strategy](#6-automation-strategy).**
+> **How the named subflows compose into the automation described in [Automation Strategy](#7-automation-strategy).**
 
-A short paragraph describing the automation's trigger conditions and subflows in plain terms, abstracted away from technical detail. This is the *Executive Summary* of the workflow.
+A short paragraph describing the automation workflow in plain terms, abstracted away from technical detail. This is the *Executive Summary* of the workflow.
 
 Here is an example of a Workflow Statement:
 
@@ -101,8 +101,6 @@ Here is an example of a Workflow Statement:
 
 > **Note**
 > This *Workflow Statement* was adapted from a [worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md).
-
-This section **MUST** answer *how* the named building blocks described in the [Workflow and Subflows](#8-workflow-and-subflows) section align with the [Workflow Objective](#2-workflow-objective).
 
 ## 2. Workflow Objective
 
@@ -210,37 +208,7 @@ For consistency and sharing, I suggest categorizing playbooks as follows:
 
 You can use these keywords when categorizing your playbooks in the form of `{structural_role}:{main_functional_goal}`. E.g. `workflow:catch-all` or `subflow:enrichment`.
 
-## 6. Automation Strategy
-
-> **A high-level plan for reaching the automation workflow objective.**
-
-Write a short plan of the mechanism in free text, before it gets broken down into implementation pieces. 
-
-You begin by describing, in plain language, how the objective is going to be automated, along with the scope and dependencies of the goal, without being rigorous about the specific technical details of your SOAR platform. This is the *"north star"* you (and others) will use when mapping the idea to an actual SOAR platform. 
-
-You want to keep this section deliberately as vendor neutral as possible, to make it portable. The Automation Strategy **MUST** read the same regardless of which SOAR platform that eventually implements it, even if the technical details are slightly different between instances.
-
-Here is an example:
-
-> **Trigger** on any *{threat-intelligence feed}* (vendor) *{alert type}* (product) alert. **Score** the alert using the feed's native severity definitions. **Prioritize** the alert using the calculated scores. **Triage** the case to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
-
-Note that mentioning the vendor and product of the alert that the playbook consumes, or the explicit Telegram integration mention, **is not** a contradiction to the portability claim. Moreover, when writing your strategy, use text formatting to your own advantage to make it clearer:
-
-1. Use **bold text** for the **verbs** that lead to **effects** and **outcomes**. In the example above, these are: Trigger, Score, Prioritize, Triage, Notify.
-2. Use *Italics* to highlight *data sources* and *SOAR components*, such as the feed vendor, the feed product, its severity definitions, and the integration names used.
-3. Each sentence describes a potential subflow. *"Score the alert using the feed's native severity"* is an alert-scoring subflow; *"Notify the SOC team by email and, optionally, Telegram"* is a notification subflow that explicitly states Telegram is optional (parameterizable to be enabled or not).
-
-### Optional Technical Strategy
-
-After the General Strategy is set, you can write a more concrete version called *Technical Strategy*, which deliberately includes your SOAR platform's vocabulary, like the actual in-platform integration names, automated action names, and vendor-specific mechanics, while still not as detailed as the block-by-block breakdown in [Workflow and Subflows](#8-workflow-and-subflows).
-
-> **Note**
-> You can see [a worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md) for a Technical Strategy written out for a real SOAR platform.
-
-> **Note**
-> The benefit of dividing your strategy is that the *General Strategy* guides any implementation, while the *Technical Strategy* guides your implementation.
-
-## 7. Trigger Conditions
+## 6. Trigger Conditions
 
 > **The conditions that have to occur for the workflow to run.**
 
@@ -280,19 +248,49 @@ Explain briefly the trigger conditions here. Include a sample of the original al
 - **Reason**: Why that priority?
 ```
 
+## 7. Automation Strategy
+
+> **A high-level plan for reaching the automation workflow objective.**
+
+Write a short plan of the mechanism in free text, before it gets broken down into implementation pieces. 
+
+You begin by describing, in plain language, how the objective is going to be automated, along with the scope and dependencies of the goal, without being rigorous about the specific technical details of your SOAR platform. This is the *"north star"* you (and others) will use when mapping the idea to an actual SOAR platform. 
+
+You want to keep this section deliberately as vendor neutral as possible, to make it portable. The Automation Strategy **MUST** read the same regardless of which SOAR platform that eventually implements it, even if the technical details are slightly different between instances.
+
+Here is an example:
+
+> **Trigger** on any *{threat-intelligence feed}* (vendor) *{alert type}* (product) alert. **Score** the alert using the feed's native severity definitions. **Prioritize** the alert using the calculated scores. **Triage** the case to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
+
+Note that mentioning the vendor and product of the alert that the playbook consumes, or the explicit Telegram integration mention, **is not** a contradiction to the portability claim. Moreover, when writing your strategy, use text formatting to your own advantage to make it clearer:
+
+1. Use **bold text** for the **verbs** that lead to **effects** and **outcomes**. In the example above, these are: Trigger, Score, Prioritize, Triage, Notify.
+2. Use *Italics* to highlight *data sources* and *SOAR components*, such as the feed vendor, the feed product, its severity definitions, and the integration names used.
+3. Each sentence describes a potential subflow. *"Score the alert using the feed's native severity"* is an alert-scoring subflow; *"Notify the SOC team by email and, optionally, Telegram"* is a notification subflow that explicitly states Telegram is optional (parameterizable to be enabled or not).
+
+### Optional Technical Strategy
+
+After the General Strategy is set, you can write a more concrete version called *Technical Strategy*, which deliberately includes your SOAR platform's vocabulary, like the actual in-platform integration names, automated action names, and vendor-specific mechanics, while still not as detailed as the block-by-block breakdown in [Workflow and Subflows](#8-workflow-and-subflows).
+
+> **Note**
+> You can see [a worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md) for a Technical Strategy written out for a real SOAR platform.
+
+> **Note**
+> The benefit of dividing your strategy is that the *General Strategy* guides any implementation, while the *Technical Strategy* guides your implementation.
+
 ## 8. Workflow and Subflows
 
 > **The skeleton of the automation workflow.**
 
-This section breaks the final playbook into its constituent elements.
+This section breaks the final playbook into its constituent elements. This section is essential for automation engineers who need to understand the logic of your automation, in case they need to adjust it to adapt it to their environment.
 
 **I. Subflow Breakdown** 
 
 For each subflow, name it and state what it does. You want to include platform-specific detail here, like the integration actions and configurations each subflow calls.
 
-**II. Input/Output Documentation** 
+**II. Input and Output Documentation** 
 
-You must document all input and output parameters of your subflows, if any. This is very important for the parameterization principle. 
+You must document all input and output parameters of your subflows for effective parameterization.
 
 Most SOAR platforms support feeding and returning data in two main ways:
 - **Execution output**: The subflow specifies the data model it will receive and return. You usually use this when you need to feed another block or action downstream in the workflow logic.
@@ -311,6 +309,11 @@ For your reference, here is a list of recurring failure classes worth checking a
 - `MISCONFIGURED_INTEGRATION`, when your platform has the integration available but the configuration is incorrect.
 - `MALFORMED_DATA`, when the data you expect from an alert or a previous integration action is not what you expected.
 - `SYSTEM_ERROR`, when the SOAR platform or the third-party platform fails.
+
+There are more things you may want to include, such as brief details about the **Integrations** used in the automation and the specific **Actions** you used and why. There's also a distinction between **Outcomes**; the planned results of your workflow, and the **Effects**, which are side-effects or secondary results of your actions and automation workflows as a whole.
+
+> **Note**
+> Usually, **Effects** are a consequence of poor vendor documentation about their integrations and actions.
 
 ## 9. Assumptions
 
