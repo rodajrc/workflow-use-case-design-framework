@@ -1,4 +1,4 @@
-# Playbook Design Framework (working title)
+# Playbook Use Case Design Framework
 
 A design-first framework for security automation planning and workflow development.
 
