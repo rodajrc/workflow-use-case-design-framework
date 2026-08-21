@@ -1,1 +1,105 @@
-<p style="margin:8px 0 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px"><span style="background-color:#f1e9d7;color:#082038;border-radius:4px;padding:2px 8px;font-weight:700">[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "alert_type"]</span><p style="margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038"><b>Monitor:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "monitor_name"] (<b>ID:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "monitor_id"])<p style="margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038;word-break:break-word"><b>Label:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "labels"]   <b>Type:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc___type"]<h2 style="margin:12px 0 4px 0;color:#082038;font-family:Arial,Helvetica,sans-serif;font-size:14px;border-bottom:2px solid #c8b080;padding-bottom:2px">GTI native scoring</h2><p style="margin:0 0 8px 0;background-color:#f1e9d7;padding:6px 8px;border-radius:4px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038"><b>Severity:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "severity"]<br><b>Confidence:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "confidence"]<h2 style="margin:12px 0 4px 0;color:#082038;font-family:Arial,Helvetica,sans-serif;font-size:14px;border-bottom:2px solid #c8b080;padding-bottom:2px">Finding</h2><p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038;word-break:break-word"><b>Identity:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_service_account_login"]<p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038;word-break:break-word"><b>Service:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_service_account_service_name"] ([Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_service_account_service_inet_location_url"])<p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038;word-break:break-word"><b>Source file:</b> <a href='[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_source_url"]'style=color:#082038>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_source_file_filename"]</a><p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#082038;word-break:break-word"><b>SHA256:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_source_file_hashes_sha256"]<p style="margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#606a76"><b>Published:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_timestamp"]   <b>Collected (GTI):</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "doc_ingested"]   <b>Received (GTI):</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=","Main Alert") | "created_at"]   <b>GTI status:</b> [Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" | filter("event_type", "=", "Main Alert") | "status"]
+<style>
+    .tg {
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 600px
+    }
+
+    .tg td {
+        border-style: solid;
+        border-width: 1px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        overflow: hidden;
+        padding: 8px 6px;
+        word-break: normal
+    }
+
+    .tg th {
+        border-style: solid;
+        border-width: 1px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        overflow: hidden;
+        padding: 8px 6px;
+        word-break: normal
+    }
+
+    .tg .tg-section {
+        background-color: #082038;
+        border-color: #082038;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: left;
+        vertical-align: middle;
+        padding-left: 8px
+    }
+
+    .tg .tg-label {
+        background-color: #fff;
+        border-color: #c8b080;
+        color: #082038;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: left;
+        vertical-align: top
+    }
+
+    .tg .tg-value {
+        background-color: #fff;
+        border-color: #c8b080;
+        color: #082038;
+        font-size: 12px;
+        text-align: left;
+        vertical-align: top;
+        word-break: break-word
+    }
+
+    @media screen and (max-width:767px) {
+        .tg {
+            width: auto !important
+        }
+
+        .tg col {
+            width: auto !important
+        }
+
+        .tg-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: auto 0
+        }
+    }
+</style>
+<div class=tg-wrap>
+    <table class=tg>
+        <tr>
+            <td class=tg-section colspan=2>Monitor Information
+            <td class=tg-section colspan=2>Alert Information
+        <tr>
+            <td class=tg-label>Monitor ID
+            <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
+                filter("event_type", "=", "Main Alert") | "monitor_id"]
+            <td class=tg-label>Alert Name
+            <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
+                filter("event_type", "=", "Main Alert") | "title"]
+        <tr>
+            <td class=tg-label>Monitor Name
+            <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
+                filter("event_type", "=", "Main Alert") | "monitor_name"]
+            <td class=tg-label>Confidence
+            <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
+                filter("event_type", "=", "Main Alert") | "confidence" | substring("0", "4") | trim()]
+        <tr>
+            <td class=tg-label>Finding Type
+            <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
+                filter("event_type", "=", "Main Alert") | "doc___type" | toUpper() | setIfEmpty("UNKNOWN")]
+            <td class=tg-label>Alert Severity
+            <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
+                filter("event_type", "=", "Main Alert") | "severity" | toUpper()]
+    </table>
+</div>
