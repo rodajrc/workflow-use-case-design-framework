@@ -175,7 +175,7 @@ The **DTM CatchAll** playbook has the following high-level structure:
 
 **Purpose**
 
-Generic, cross-playbook baseline case setup. Determines whether the current alert is the first one grouped into its case and, only on that first alert, runs case-level "`Siemplify - Get Similar Cases`" enrichment. 
+Generic, cross-playbook baseline case setup. Determines whether the current alert is the first one grouped into its case and, only on that first alert, runs case-level `Siemplify - Get Similar Cases` enrichment. 
 
 This whole block is an improvement over the stated objective rather than a requirement of it (see Section 10).
 
@@ -313,7 +313,7 @@ None explicit. All actions have `autoSkipOnFailure: false`.
 
 **Purpose**
 
-Generic, catch-all-wide subflow that maps the computed severity into the case's real, native `Alert.Priority` field via `Siemplify - Change Alert Priority`.
+Generic, catch-all-wide subflow that maps the computed severity into the Google SecOps native `Alert.Priority` property via `Siemplify - Change Alert Priority`.
 
 **Integrations and Actions**
 
@@ -353,7 +353,7 @@ None explicit
 
 **Purpose**
 
-Generic, catch-all-wide subflow that assigns the case to an Incident Response tier and moves its stage, or auto-closes a confirmed-benign alert.
+Generic, catch-all-wide subflow that assigns the case to an Incident Response tier and moves its stage, or auto-closes a low-severity alert.
 
 **Integrations and Actions**
 
