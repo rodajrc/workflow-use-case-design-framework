@@ -12,7 +12,7 @@ related_flows:
     - "DTM Alert Score by Severity"
     - "Alert Prioritization"
     - "Case Lifecycle Management"
-    - "Alert Notification"
+    - "DTM Alert Notification"
 ---
 
 # Digital Threat Monitoring Catch All Playbook
@@ -27,13 +27,13 @@ related_flows:
 | **Last update** | *2026-08-20* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: Playbook running end-to-end: case initialization, severity-based scoring, prioritization, tier-based case lifecycle management. Email and Telegram notification are both supported. |
-| **Related flows** | Case Initialization, Case Initialization for GTI DTM Alerts, DTM Alert Score by Severity, Alert Prioritization, Case Lifecycle Management, Alert Notification. |
+| **Related flows** | Case Initialization, Case Initialization for GTI DTM Alerts, DTM Alert Score by Severity, Alert Prioritization, Case Lifecycle Management, DTM Alert Notification. |
 
 **This is UCDD Version 1.1**
 
 ## 1. Workflow Statement
 
-> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Case Initialization`** runs a generic case setup, followed by **`Case Initialization for GTI DTM Alerts`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Alert Prioritization`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Case Lifecycle Management`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
+> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Case Initialization`** runs a generic case setup, followed by **`Case Initialization for GTI DTM Alerts`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Alert Prioritization`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Case Lifecycle Management`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
 
 ## 2. Workflow Objective
 
@@ -52,7 +52,7 @@ The following table lists all integrations and actions using in the automation w
 | `Siemplify` | Google SecOps native action integration | `Case Tag`, `Add General Insight`, `Instruction`, `Add Scoring Context Information`, `Change Alert Priority`, `Close Alert`, `Assign Case`, `Change Case Stage` | Required | |
 | `Flow` | Google SecOps built-in control flow | `IfFlowCondition`, used for every branch point in the playbook | Required | |
 | `EmailV2` | Notification block's primary channel | `Send Email` | Required | |
-| `Telegram` | Notification block's secondary channel | `Send Message` | Optional | Requires per-environment Telegram integration instance and custom dynamic parameters to configure the Telegram chat ID. |
+| `Telegram` | Notification block's secondary channel | `Send Message` | Optional, per-environment | Requires per-environment Telegram integration instance and custom dynamic parameters to configure the Telegram chat ID. |
 
 **Configurable Parameters**
 
@@ -388,16 +388,18 @@ This block reads `[Alert.ALERT_SEVERITY]` directly.
 
 None explicit.
 
-### 8.6 `Alert Notification`
+### 8.6 `DTM Alert Notification`
 
 **Purpose**
 
-Generic notification subflow: gates on the case's priority, then sends a branded HTML email and, optionally, a Telegram message.
+DTM-specific notification subflow: gates on the case's priority, then sends a branded HTML email and, optionally, a branded Telegram message.
 
 **Integrations and Actions**
 
 `Flow`, `EmailV2`, `Telegram`, `Siemplify`.
 
+- `EmailV2 - Send Email`: Send a branded notification to the email contact configured in Google SecOps SOAR Environment settings.
+- `Telegram - Send Message`: Send a branded notification message to a custom Telegram chat group using Telegram bot. Requires a per-environment integration instance.
 - `Siemplify - Mark As Important`: flags the case as Important when any of the response integration actions fails.
 
 **Inputs and Outputs**
@@ -407,18 +409,18 @@ No execution output.
 
 **Steps**
 
-1. Playbook validates first whether the alert's priority passes the `param_alert_priority_to_communicate` gate.
-2. If the check passes, check if notification via email is allowed. If not, continue to step 4.
+1. Playbook validates first whether the alert's priority passes the `param_alert_priority_to_communicate` gate. If the condition fails, *End*
+2. Check if notification via email is allowed. If not, continue to step 4.
 3. `EmailV2 - Send Email` is executed with a branded HTML template. Error handling occurs immediately in case the action fails.
 4. Check if notification via Telegram is allowed. If not, *End*.
-5. `Telegram - Send Message` is executed.
+5. `Telegram - Send Message` is executed. Error handling occurs immediately in case the action fails.
 
 > **Warning**
-> This is deliberately a simplification of the actual automation logic. Refer to the actual block to see exactly how it operates.
+> This is a simplification of the actual automation logic. Refer to the actual block to see exactly how it works.
 
 **Outcomes and Effects**
 1. `EmailV2 - Send Email` sends a branded HTML email (Zevorus palette) to `[Environment.ContactEmail]`, including a dynamic case link, `[General.HostUrl]cases/[Case.Id]` — no slash between the two, since `[General.HostUrl]` already resolves with a trailing slash.
-2. `Telegram - Send Message` sends `[SecOps] [Alert.Priority] alert — needs review`, then the case ID, alert name, start time, and source, to `[Input.param_telegram_chat_id]`. Its own failure-path `Siemplify - Instruction` text notes the channel "does not work yet for many environments in one instance" — an owner-documented caveat, not independently verified here.
+2. `Telegram - Send Message` sends a branded message including the same elements as the email notification to `[Input.param_telegram_chat_id]`. The 
 3. `Siemplify - Mark As Important` fires only on a delivery failure, on either channel — the only place in the whole playbook this action fires, a deliberate choice so a case whose automated notification failed doesn't go unnoticed.
 
 **Error Handling**
@@ -454,7 +456,9 @@ siemplify.set_alert_context_property(ALERT_SEVERITY, SEV_LIST[alert_score])
 
 - **(BLOCK) Case Initialization for GTI DTM Alerts**: case-wall Insight redesigned as an honest-labels two-column table (Monitor Information, Alert Information), replacing fabricated fields with the closest real DTM signals.
 
-- **(BLOCK) Alert Notification**: Enhanced the notification with a HTML template for `EmailV2 - Send Email` integration with parameters `param_branding_name` and `param_playbook_name`.
+- **(BLOCK) DTM Alert Notification**: Enhanced the notification with a HTML template for `EmailV2 - Send Email` integration with parameters `param_branding_name` and `param_playbook_name`.
+
+- **(BLOCK) DTM Alert Notification**: Normalized the notification in the Telegram use case.
 
 ## 11. Workflow Simulation and Testing
 
@@ -484,3 +488,4 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 7 | 2026-08-18 | rodajrc | **Migrated to UCDD Framework v1.1**: Adopted the 12-section structure. |
 | 8 | 2026-08-19 | rodajrc | **Completed Section 8**: documented 8.3 Alert Scoring, 8.4 Alert Prioritization, 8.5 Triage, and 8.6 Notification. |
 | 9 | 2026-08-21 | rodajrc | **Completed UCDD**: fully documented DTM CatchAll playbook as of its current version |
+| 10 | 2026-08-21 | rodajrc | **Fix**: Made alert notification DTM-specific. Fixed Telegram message template |
