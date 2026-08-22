@@ -3,15 +3,15 @@ ucdd_version: 1.1
 use_case_name: "Digital Threat Monitoring Catch All (dtm-catchall)"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-08-01
-last_update: 2026-08-20
+last_update: 2026-08-22
 owner: "rodajrc"
 status: "ACTIVE:IN_DEVELOPMENT"
 related_flows:
-    - "Case Initialization"
+    - "Generic Case Initialization"
     - "Case Initialization for GTI DTM Alerts"
     - "DTM Alert Score by Severity"
-    - "Alert Prioritization"
-    - "Case Lifecycle Management"
+    - "Alert Prioritization by Alert Severity"
+    - "Case Lifecycle Management by Severity"
     - "DTM Alert Notification"
 ---
 
@@ -24,16 +24,16 @@ related_flows:
 | **Use case name** | Digital Threat Monitoring Catch All (DTM CatchAll) |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-08-01* |
-| **Last update** | *2026-08-20* |
+| **Last update** | *2026-08-22* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: Playbook running end-to-end: case initialization, severity-based scoring, prioritization, tier-based case lifecycle management. Email and Telegram notification are both supported. |
-| **Related flows** | Case Initialization, Case Initialization for GTI DTM Alerts, DTM Alert Score by Severity, Alert Prioritization, Case Lifecycle Management, DTM Alert Notification. |
+| **Related flows** | Generic Case Initialization, Case Initialization for GTI DTM Alerts, DTM Alert Score by Severity, Alert Prioritization by Alert Severity, Case Lifecycle Management by Severity, DTM Alert Notification. |
 
 **This is UCDD Version 1.1**
 
 ## 1. Workflow Statement
 
-> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Case Initialization`** runs a generic case setup, followed by **`Case Initialization for GTI DTM Alerts`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Alert Prioritization`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Case Lifecycle Management`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
+> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Generic Case Initialization`** runs a generic case setup, followed by **`Case Initialization for GTI DTM Alerts`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Alert Prioritization by Alert Severity`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Case Lifecycle Management by Severity`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
 
 ## 2. Workflow Objective
 
@@ -65,8 +65,8 @@ The following table lists all parameters configurable across the automation work
 | param_enable_email | Integer (0,1) | Enables the EmailV2 notification channel. | 0 (disabled) |
 | param_enable_telegram | Integer (0,1) | Enables the Telegram notification channel. | 0 (disabled) |
 | param_telegram_chat_id | String | Target Telegram chat ID. Required only if `param_enable_telegram=1`. | — |
-| param_investigation_team | String (SOC role) | Tier assigned when Case Lifecycle Management escalates a case to the Investigation stage. | @Tier1 |
-| param_incident_team | String (SOC role) | Tier assigned when Case Lifecycle Management escalates a case to the Incident stage. | @Tier2 |
+| param_investigation_team | String (SOC role) | Tier assigned when Case Lifecycle Management by Severity escalates a case to the Investigation stage. | @Tier1 |
+| param_incident_team | String (SOC role) | Tier assigned when Case Lifecycle Management by Severity escalates a case to the Incident stage. | @Tier2 |
 | param_branding_name | String | Organization branding name shown in the Notification email's HTML template. | Zevorus |
 | param_playbook_name | String | Playbook name shown in the Notification email's HTML template. | DTM CatchAll |
 
@@ -82,7 +82,7 @@ The following table lists all parameters configurable across the automation work
 - **Severity-definition Instruction**: a plain-text analyst note explaining DTM's severity scale, attached at case init visible in the case wall (Section 8.2).
 - **Weighted Alert Score***: written to case and alert context (Section 8.3), 
 - **Alert Priority Update**: native alert priority update by assessing the alert score (Section 8.4).
-- **Case assignment and stage change**: Case Lifecycle Management assigns the case to parameters `param_investigation_team=@Tier1` or `param_incident_team=@Tier2` and moves it to the Investigation or Incident stage, or auto-closes the alert (Section 8.5).
+- **Case assignment and stage change**: Case Lifecycle Management by Severity assigns the case to parameters `param_investigation_team=@Tier1` or `param_incident_team=@Tier2` and moves it to the Investigation or Incident stage, or auto-closes the alert (Section 8.5).
 - **Branded notification**: Sent once the alert clears the `param_alert_priority_to_communicate` gating parameter (Section 8.6). Email notification can be configurable.
 
 ![Branded Notification: a redacted example of the notification you will receive when a DTM alert is received. The organization name ("Zevorus") and the playbook name ("DTM CatchAll") can be configured without modifying the HTML directly.](/examples/dtm-catchall/static/ss-notification-email-sample.png)
@@ -171,7 +171,7 @@ The **DTM CatchAll** playbook has the following high-level structure:
 
 > **(1)** *Case Initialization* -> **(2)** *Alert Score* -> **(3)** *Alert Prioritization* -> **(4)** *Case Lifecycle Management* -> **(5)** *Response (e.g. Alert Notification)*.
 
-### 8.1 `Case Initialization`
+### 8.1 `Generic Case Initialization`
 
 **Purpose**
 
@@ -299,7 +299,7 @@ No execution output.
 
 1. `Tools - Append to Context Value` writes `[Alert.TicketId]:{severity}` (comma-separated across alerts) to a case-scoped context property keyed by `CONST_CONTEXT_ALERT_SEVERITY`.
 2. `Tools - Add Alert Scoring Information` writes a `Digital Threat Monitoring`-category scoring entry to the case wall with severities set to High, Medium, or Low depending on the branch.
-3. The same `Add Alert Scoring Information` call also sets the alert-scoped `[Alert.ALERT_SEVERITY]` field to that same High/Medium/Low value, an undocumented effect, confirmed only by inspection. This is what Prioritization (8.4) and Case Lifecycle Management (8.5) actually consume downstream.
+3. The same `Add Alert Scoring Information` call also sets the alert-scoped `[Alert.ALERT_SEVERITY]` field to that same High/Medium/Low value, an undocumented effect, confirmed only by inspection. This is what Prioritization (8.4) and Case Lifecycle Management by Severity (8.5) actually consume downstream.
 
 The action's own documented description covers only the first line (`ALERT_SCORE_INFO`, "add an entry to the alert scoring database"). `ALERT_SCORE` and `ALERT_SEVERITY` are written in the same call but never mentioned in that description.
 
@@ -309,7 +309,7 @@ Refer to [Assumptions](#9-assumptions) for information about the constant parame
 
 None explicit. All actions have `autoSkipOnFailure: false`.
 
-### 8.4 `Alert Prioritization`
+### 8.4 `Alert Prioritization by Alert Severity`
 
 **Purpose**
 
@@ -349,7 +349,7 @@ Outcome: the native `Alert.Priority` field is set to the resolved value.
 
 None explicit
 
-### 8.5 `Case Lifecycle Management`
+### 8.5 `Case Lifecycle Management by Severity`
 
 **Purpose**
 
@@ -452,7 +452,7 @@ siemplify.set_alert_context_property(ALERT_SEVERITY, SEV_LIST[alert_score])
 
 ## 10. Improvements
 
-- **(BLOCK) Case Initialization**: adds a case-scoped Similar Cases widget, populated only when the current alert is the first grouped into its case.
+- **(BLOCK) Generic Case Initialization**: adds a case-scoped Similar Cases widget, populated only when the current alert is the first grouped into its case.
 
 - **(BLOCK) Case Initialization for GTI DTM Alerts**: case-wall Insight redesigned as an honest-labels two-column table (Monitor Information, Alert Information), replacing fabricated fields with the closest real DTM signals.
 
@@ -462,7 +462,7 @@ siemplify.set_alert_context_property(ALERT_SEVERITY, SEV_LIST[alert_score])
 
 ## 11. Workflow Simulation and Testing
 
-Several real debug-mode runs have been executed against the live playbook, including a full end-to-end pass confirming Case Lifecycle Management assignment and Notification delivery.
+Several real debug-mode runs have been executed against the live playbook, including a full end-to-end pass confirming Case Lifecycle Management by Severity assignment and Notification delivery.
 
 ## 12. Resources
 
@@ -489,3 +489,4 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 8 | 2026-08-19 | rodajrc | **Completed Section 8**: documented 8.3 Alert Scoring, 8.4 Alert Prioritization, 8.5 Triage, and 8.6 Notification. |
 | 9 | 2026-08-21 | rodajrc | **Completed UCDD**: fully documented DTM CatchAll playbook as of its current version |
 | 10 | 2026-08-21 | rodajrc | **Fix**: Made alert notification DTM-specific. Fixed Telegram message template |
+| 11 | 2026-08-22 | rodajrc | **Fix**: Renamed three subflows live and in the Content Hub package: `Alert Prioritization` -> `Alert Prioritization by Alert Severity`, fixing a confirmed name collision with an unrelated existing community contribution; `Case Initialization` -> `Generic Case Initialization` and `Case Lifecycle Management` -> `Case Lifecycle Management by Severity`, proactive disambiguation, no collision found for either. |
