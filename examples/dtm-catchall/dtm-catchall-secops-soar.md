@@ -120,7 +120,7 @@ Some relevant fields from DTM Alerts (non-exhaustive, redacted) include:
 }
 ```
 
-See the [GTI DTM Compromised Credentials Alert Sample](/examples/dtm-catchall/ignore-gti-dtm-credential-alert-sample.json) (currently git-ignored until sensitive content is removed)
+See the [GTI DTM Compromised Credentials Alert Sample](/examples/dtm-catchall/ignore-gti-dtm-credential-alert-sample.json)
 
 ### Execution Policy
 
@@ -490,3 +490,4 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 9 | 2026-08-21 | rodajrc | **Completed UCDD**: fully documented DTM CatchAll playbook as of its current version |
 | 10 | 2026-08-21 | rodajrc | **Fix**: Made alert notification DTM-specific. Fixed Telegram message template |
 | 11 | 2026-08-22 | rodajrc | **Fix**: Renamed three subflows live and in the Content Hub package: `Alert Prioritization` -> `Alert Prioritization by Alert Severity`, fixing a confirmed name collision with an unrelated existing community contribution; `Case Initialization` -> `Generic Case Initialization` and `Case Lifecycle Management` -> `Case Lifecycle Management by Severity`, proactive disambiguation, no collision found for either. |
+| 12 | 2026-08-24 | rodajrc | **improvment**: Added `Siemplify - Change Case Stage` action to main playbook to mark the beginning of the triaging step. |
