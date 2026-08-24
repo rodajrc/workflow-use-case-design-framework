@@ -70,6 +70,7 @@ The following table lists all parameters configurable across the automation work
 | param_branding_name | String | Organization branding name shown in the Notification email's HTML template. | Zevorus |
 | param_playbook_name | String | Playbook name shown in the Notification email's HTML template. | DTM CatchAll |
 
+
 > **NOTE**
 > Parameters prefixed with the keyword `CONST` should not be modified.
 
@@ -309,7 +310,7 @@ Refer to [Assumptions](#9-assumptions) for information about the constant parame
 
 None explicit. All actions have `autoSkipOnFailure: false`.
 
-### 8.4 `Alert Prioritization by Alert Severity`
+### 8.4 `Generic Alert Prioritization by Alert Severity`
 
 **Purpose**
 
@@ -323,12 +324,12 @@ Generic, catch-all-wide subflow that maps the computed severity into the Google 
 
 **Inputs and Outputs**
 
-One declared input `param_alert_severity` (string)
+One declared input `param_alert_severity` (string) defaulting to `[Alert.ALERT_SEVERITY]`.
 No execution output
 
 | Parameter Name | Type | Data Type | Description | Default Value |
 |---|---|---|---|---|
-| param_alert_severity | Input Parameter | String | The alert-severity value to prioritize by in lowercase. | `[Alert.ALERT_SEVERITY\| toLower()]` |
+| param_alert_severity | Input Parameter | String | The alert-severity value to prioritize by. | `[Alert.ALERT_SEVERITY]` |
 
 **Steps**
 
@@ -349,7 +350,7 @@ Outcome: the native `Alert.Priority` field is set to the resolved value.
 
 None explicit
 
-### 8.5 `Case Lifecycle Management by Severity`
+### 8.5 `Generic Case Lifecycle Management by Severity`
 
 **Purpose**
 
@@ -365,6 +366,7 @@ Two declared inputs. No execution output.
 
 | Parameter Name | Type | Data Type | Description | Default Value |
 |---|---|---|---|---|
+| param_alert_severity | Input Parameter | String | The alert-severity value to prioritize by. | `[Alert.ALERT_SEVERITY]` |
 | param_investigation_team | Input Parameter | String (SOC role) | Tier assigned when the case is escalated to Investigation. | @Tier1 |
 | param_incident_team | Input Parameter | String (SOC role) | Tier assigned when the case is escalated to Incident. | @Tier2 |
 
@@ -382,7 +384,7 @@ Outcome: case stage change (`Investigation` or `Incident`) and assignee, or, on 
 
 **Dependencies**
 
-This block reads `[Alert.ALERT_SEVERITY]` directly.
+None explicit.
 
 **Error Handling**
 
@@ -490,4 +492,4 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 9 | 2026-08-21 | rodajrc | **Completed UCDD**: fully documented DTM CatchAll playbook as of its current version |
 | 10 | 2026-08-21 | rodajrc | **Fix**: Made alert notification DTM-specific. Fixed Telegram message template |
 | 11 | 2026-08-22 | rodajrc | **Fix**: Renamed three subflows live and in the Content Hub package: `Alert Prioritization` -> `Alert Prioritization by Alert Severity`, fixing a confirmed name collision with an unrelated existing community contribution; `Case Initialization` -> `Generic Case Initialization` and `Case Lifecycle Management` -> `Case Lifecycle Management by Severity`, proactive disambiguation, no collision found for either. |
-| 12 | 2026-08-24 | rodajrc | **improvment**: Added `Siemplify - Change Case Stage` action to main playbook to mark the beginning of the triaging step. |
+| 12 | 2026-08-24 | rodajrc | **improvment**: Add `Siemplify - Change Case Stage` action to main playbook to mark the beginning of the triaging step. Change 8.4 block name and moved normalization to lowercase from the input parameter. Converted `param_alert_severity` to constant. Change 8.5 block name and moved dependency to input constant instead. |
