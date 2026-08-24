@@ -121,7 +121,7 @@ Some relevant fields from DTM Alerts (non-exhaustive, redacted) include:
 }
 ```
 
-See the [GTI DTM Compromised Credentials Alert Sample](/examples/dtm-catchall/ignore-gti-dtm-credential-alert-sample.json)
+See the [GTI DTM Compromised Credentials Alert Sample](/examples/dtm-catchall/gti-dtm-credential-alert-sample.json)
 
 ### Execution Policy
 
