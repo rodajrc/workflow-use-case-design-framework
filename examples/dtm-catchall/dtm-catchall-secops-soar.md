@@ -8,7 +8,7 @@ owner: "rodajrc"
 status: "ACTIVE:IN_DEVELOPMENT"
 related_flows:
     - "Generic Case Initialization"
-    - "Case Initialization for GTI DTM Alerts"
+    - "DTM Case Initialization"
     - "DTM Alert Score by Severity"
     - "Alert Prioritization by Alert Severity"
     - "Case Lifecycle Management by Severity"
@@ -24,16 +24,16 @@ related_flows:
 | **Use case name** | Digital Threat Monitoring Catch All (DTM CatchAll) |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-08-01* |
-| **Last update** | *2026-08-22* |
+| **Last update** | *2026-08-30* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: Playbook running end-to-end: case initialization, severity-based scoring, prioritization, tier-based case lifecycle management. Email and Telegram notification are both supported. |
-| **Related flows** | Generic Case Initialization, Case Initialization for GTI DTM Alerts, DTM Alert Score by Severity, Alert Prioritization by Alert Severity, Case Lifecycle Management by Severity, DTM Alert Notification. |
+| **Related flows** | Generic Case Initialization, DTM Case Initialization, DTM Alert Score by Severity, Alert Prioritization by Alert Severity, Case Lifecycle Management by Severity, DTM Alert Notification. |
 
 **This is UCDD Version 1.1**
 
 ## 1. Workflow Statement
 
-> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Generic Case Initialization`** runs a generic case setup, followed by **`Case Initialization for GTI DTM Alerts`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Alert Prioritization by Alert Severity`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Case Lifecycle Management by Severity`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
+> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Generic Case Initialization`** runs a generic case setup, followed by **`DTM Case Initialization`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Alert Prioritization by Alert Severity`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Case Lifecycle Management by Severity`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
 
 ## 2. Workflow Objective
 
@@ -70,6 +70,9 @@ The following table lists all parameters configurable across the automation work
 | param_branding_name | String | Organization branding name shown in the Notification email's HTML template. | Zevorus |
 | param_playbook_name | String | Playbook name shown in the Notification email's HTML template. | DTM CatchAll |
 
+
+> **IMPORTANT**
+> Before alerts arrive, create every SOAR environment they can land in: the environment name, or one of its aliases, must match the environment value the connector assigns at ingestion. Alerts ingested into a non-existent environment are stored, but their cases are hidden from the UI and API, and playbook runs against them may fail at their first action step (see Section 8.1, Error Handling).
 
 > **NOTE**
 > Parameters prefixed with the keyword `CONST` should not be modified.
@@ -207,7 +210,9 @@ No declared inputs and no execution output.
 
 None explicit. All actions have `autoSkipOnFailure: false`.
 
-### 8.2 `Case Initialization for GTI DTM Alerts`
+When the case belongs to a SOAR environment that does not exist, `Tools - Find First Alert` fails immediately with the error message `Api Key for filter (x.Name == apiKeyName) wasn't found`. The message misleads because the cause of the problem is the non-existing environment failing to launch a playbook action.
+
+### 8.2 `DTM Case Initialization`
 
 **Purpose** 
 
@@ -324,16 +329,12 @@ Generic, catch-all-wide subflow that maps the computed severity into the Google 
 
 **Inputs and Outputs**
 
-One declared input `param_alert_severity` (string) defaulting to `[Alert.ALERT_SEVERITY]`.
-No execution output
-
-| Parameter Name | Type | Data Type | Description | Default Value |
-|---|---|---|---|---|
-| param_alert_severity | Input Parameter | String | The alert-severity value to prioritize by. | `[Alert.ALERT_SEVERITY]` |
+No declared input.
+No declared output.
 
 **Steps**
 
-1. `Flow - IfFlowCondition` branches on `[Input.param_alert_severity]`:
+1. `Flow - IfFlowCondition` branches on `[Input.CONST_ALERT_SEVERITY]`:
     - `critical` branch: sets Priority Critical
     - `high` branch: sets Priority High
     - `medium` branch: sets Priority Medium
@@ -344,7 +345,7 @@ No execution output
 
 **Outcomes and Effects**
 
-Outcome: the native `Alert.Priority` field is set to the resolved value.
+Native `Alert.Priority` field is set to the resolved value.
 
 **Error Handling**
 
@@ -366,13 +367,12 @@ Two declared inputs. No execution output.
 
 | Parameter Name | Type | Data Type | Description | Default Value |
 |---|---|---|---|---|
-| param_alert_severity | Input Parameter | String | The alert-severity value to prioritize by. | `[Alert.ALERT_SEVERITY]` |
 | param_investigation_team | Input Parameter | String (SOC role) | Tier assigned when the case is escalated to Investigation. | @Tier1 |
 | param_incident_team | Input Parameter | String (SOC role) | Tier assigned when the case is escalated to Incident. | @Tier2 |
 
 **Steps**
 
-1. `Flow - IfFlowCondition` branches on `[Alert.ALERT_SEVERITY | toLower()]`:
+1. `Flow - IfFlowCondition` branches on `[Input.CONST_ALERT_SEVERITY | toLower()]`:
     - `critical` or `high` branch (escalate): `Siemplify - Change Case Stage` sets `Incident`, then `Tools - Assign Case to User` assigns to `param_incident_team`.
     - `medium` or `low` branch (investigate): `Siemplify - Change Case Stage` sets `Investigation`, then `Tools - Assign Case to User` assigns to `param_investigation_team`.
     - `else` branch (unmatched, effectively `informational`): `Siemplify - Close Alert`: Reason `NotMalicious`, Root Cause `Other`, tag `autoclose`, assigned to `@Tier1` for the record.
@@ -456,7 +456,7 @@ siemplify.set_alert_context_property(ALERT_SEVERITY, SEV_LIST[alert_score])
 
 - **(BLOCK) Generic Case Initialization**: adds a case-scoped Similar Cases widget, populated only when the current alert is the first grouped into its case.
 
-- **(BLOCK) Case Initialization for GTI DTM Alerts**: case-wall Insight redesigned as an honest-labels two-column table (Monitor Information, Alert Information), replacing fabricated fields with the closest real DTM signals.
+- **(BLOCK) DTM Case Initialization**: case-wall Insight redesigned as an honest-labels two-column table (Monitor Information, Alert Information), replacing fabricated fields with the closest real DTM signals.
 
 - **(BLOCK) DTM Alert Notification**: Enhanced the notification with a HTML template for `EmailV2 - Send Email` integration with parameters `param_branding_name` and `param_playbook_name`.
 
@@ -493,3 +493,5 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 10 | 2026-08-21 | rodajrc | **Fix**: Made alert notification DTM-specific. Fixed Telegram message template |
 | 11 | 2026-08-22 | rodajrc | **Fix**: Renamed three subflows live and in the Content Hub package: `Alert Prioritization` -> `Alert Prioritization by Alert Severity`, fixing a confirmed name collision with an unrelated existing community contribution; `Case Initialization` -> `Generic Case Initialization` and `Case Lifecycle Management` -> `Case Lifecycle Management by Severity`, proactive disambiguation, no collision found for either. |
 | 12 | 2026-08-24 | rodajrc | **improvment**: Add `Siemplify - Change Case Stage` action to main playbook to mark the beginning of the triaging step. Change 8.4 block name and moved normalization to lowercase from the input parameter. Converted `param_alert_severity` to constant. Change 8.5 block name and moved dependency to input constant instead. |
+| 13 | 2026-08-29 | rodajrc | **Finding**: fail run in 8.2's `Add General Insight` — `substring("0", "4")` on the Confidence cell errors ("Invalid substring indices") whenever `confidence` renders shorter than 4 characters (e.g. `0.5`). `substring()` removed from action logic. |
+| 14 | 2026-08-30 | rodajrc | **Finding**: `Tools - Find First Alert` fails (`Api Key ... wasn't found`) for cases in a non-existent SOAR environment. Environment existence documented as a deployment prerequisite (Sections 3, 8.1). No playbook change. |
