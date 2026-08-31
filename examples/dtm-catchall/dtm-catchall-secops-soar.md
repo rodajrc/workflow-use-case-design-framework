@@ -3,7 +3,7 @@ ucdd_version: 1.1
 use_case_name: "Digital Threat Monitoring Catch All (dtm-catchall)"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-08-01
-last_update: 2026-08-22
+last_update: 2026-08-30
 owner: "rodajrc"
 status: "ACTIVE:IN_DEVELOPMENT"
 related_flows:
