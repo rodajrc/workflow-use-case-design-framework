@@ -100,7 +100,7 @@ Here is an example of a Workflow Statement:
 > *The workflow* triggers on any *{Threat-Intelligence feed or platform name}* alert that carries a non-empty `monitor_id` and `monitor_name` field on its original alert. On execution, **`Generic Case Initialization`** runs a generic case setup, followed by **`Product-Specific Alert Case Initialization`** that runs source-specific case enrichment. Next, **`Product-Specific Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's context. Next, **`Generic Alert Prioritization`** reads that score and sets the case's SOAR-platform-native *Alert Priority*. **`Generic Alert Triage`** reads the resulting priority to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case's SOAR-platform-native stage. Finally, **`Generic Alert Notification`** reads the Alert's assigned priority against a configurable gate that evaluates the alert severity and analyst queue and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.
 
 > **Note**
-> This *Workflow Statement* was adapted from a [worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md).
+> This *Workflow Statement* was adapted from a [worked example](/examples/dtm-catchall/dtm-catchall.md).
 
 ## 2. Workflow Objective
 
@@ -273,7 +273,7 @@ Note that mentioning the vendor and product of the alert that the playbook consu
 After the General Strategy is set, you can write a more concrete version called *Technical Strategy*, which deliberately includes your SOAR platform's vocabulary, like the actual in-platform integration names, automated action names, and vendor-specific mechanics, while still not as detailed as the block-by-block breakdown in [Workflow and Subflows](#8-workflow-and-subflows).
 
 > **Note**
-> You can see [a worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md) for a Technical Strategy written out for a real SOAR platform.
+> You can see [a worked example](/examples/dtm-catchall/dtm-catchall.md) for a Technical Strategy written out for a real SOAR platform.
 
 > **Note**
 > The benefit of dividing your strategy is that the *General Strategy* guides any implementation, while the *Technical Strategy* guides your implementation.
@@ -297,7 +297,7 @@ Most SOAR platforms support feeding and returning data in two main ways:
 - **Case or Alert database**: SOAR and DFIR platforms often support adding context in case- or alert-scoped variables. In programming terms, these are like global variables. You usually use this type of output when you want to store something accessible for the analyst as well.
 
 > **Tip**
-> A consistent naming convention makes a parameter's role obvious at a glance. See [a worked example](/examples/dtm-catchall/dtm-catchall-secops-soar.md) for this convention applied throughout a real UCDD.
+> A consistent naming convention makes a parameter's role obvious at a glance. See [a worked example](/examples/dtm-catchall/dtm-catchall.md) for this convention applied throughout a real UCDD.
 
 **III. Error Handling**
 
