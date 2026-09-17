@@ -3,7 +3,7 @@ ucdd_version: 1.1
 use_case_name: "DTM Case Initialization"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-09
-last_update: 2026-09-09
+last_update: 2026-09-17
 owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
@@ -65,7 +65,7 @@ subflow:enrichment
 
 ## 6. Trigger Conditions
 
-No trigger of its own. Chained by a main workflow whose alerts come from the `Google Threat Intelligence - DTM` connector. The block reads the Main Alert event fields `monitor_id`, `monitor_name`, `alert_type`, `title`, `confidence` and `severity` from the original alert JSON; see the [GTI DTM Compromised Credentials Alert Sample](/examples/dtm-catchall/gti-dtm-credential-alert-sample.json).
+No trigger of its own. Chained by a main workflow whose alerts come from the `Google Threat Intelligence - DTM` connector. The block reads the Main Alert event fields `monitor_id`, `monitor_name`, `alert_type`, `id`, `confidence` and `severity` from the original alert JSON; see the [GTI DTM Compromised Credentials Alert Sample](/examples/dtm-catchall/gti-dtm-credential-alert-sample.json).
 
 ## 7. Automation Strategy
 
@@ -95,7 +95,7 @@ No execution output.
 **Outcomes and Effects**
 
 1. `Siemplify - Instruction` writes a case-scoped message (currently only shown in the case wall).
-2. `Siemplify - Add General Insight` writes a two-column table with Monitor ID, Monitor Name, Finding Type, Alert Name, Confidence and Alert Severity, pulling every field from the Main Alert event. The HTML template is at [template-html-add-insight.html](/examples/dtm-catchall/static/template-html-add-insight.html).
+2. `Siemplify - Add General Insight` writes a two-column table with Monitor ID, Monitor Name, Finding Type, Alert ID, Confidence and Alert Severity, pulling every field from the Main Alert event. The HTML template is at [template-html-add-insight.html](/examples/dtm-catchall/static/template-html-add-insight.html).
 
 **Error Handling**
 
@@ -131,3 +131,4 @@ None. The detection logic lives in each DTM monitor's own query configuration.
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
 | 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.2) into a standalone subflow UCDD. Content unchanged; history before this date lives in that document. |
+| 1 | 2026-09-17 | rodajrc | **Change**: `Add General Insight` table shows the Alert ID (`id`) instead of the Alert Name (`title`) in the first row of the Alert Information column; the alert title already names the alert object in the case, so the cell repeated it. Template updated and verified against the live block; it also still carried the `substring()` call removed in the parent's version 13, now dropped. |

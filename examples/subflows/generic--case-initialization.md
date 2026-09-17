@@ -3,7 +3,7 @@ ucdd_version: 1.1
 use_case_name: "Generic Case Initialization"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-09
-last_update: 2026-09-09
+last_update: 2026-09-17
 owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
@@ -19,14 +19,14 @@ related_flows:
 | **Use case name** | Generic Case Initialization |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-09-09* (split out of the DTM CatchAll UCDD, where it was documented since 2026-08-14) |
-| **Last update** | *2026-09-09* |
+| **Last update** | *2026-09-17* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: running live as the first block of DTM CatchAll. |
 | **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). |
 
 ## 1. Workflow Statement
 
-> *Generic Case Initialization* runs as the first block of any main workflow. It determines whether the current alert is the first one grouped into its case and, only on that first alert, enriches the case with `Siemplify - Get Similar Cases`. Every later alert grouped into the same case passes through without action.
+> *Generic Case Initialization* runs as the first block of any main workflow. It determines whether the current alert is the first one grouped into its case and, only on that first alert, enriches the case with `Siemplify - Get Similar Cases` and moves the case to the `Triage` stage. Every later alert grouped into the same case passes through without action.
 
 ## 2. Workflow Objective
 
@@ -40,7 +40,7 @@ related_flows:
 |---|---|---|---|---|
 | `Tools` | Google SecOps built-in toolkit | `Find First Alert` | Required | |
 | `Flow` | Google SecOps built-in control flow | `IfFlowCondition` | Required | |
-| `Siemplify` | Google SecOps native action integration | `Get Similar Cases` | Required | |
+| `Siemplify` | Google SecOps native action integration | `Get Similar Cases`, `Change Case Stage` | Required | |
 
 **Configurable Parameters**
 
@@ -53,6 +53,7 @@ None. The block declares no inputs.
 
 **Automated Outcomes**
 - **Similar Cases UI Widget**: case-scoped enrichment listing cases that share Rule Generator, Category Outcome and Entity Identifier over a 14-day window, open and closed. Populated only on the first alert grouped into the case.
+- **Triage stage**: the case moves to the `Triage` stage, marking the start of triage for every later block. Set only on the first alert grouped into the case.
 
 **Human-in-the-Loop Actions**
 
@@ -68,7 +69,7 @@ No trigger of its own. Chained by a main workflow as its first block, on any ale
 
 ## 7. Automation Strategy
 
-Find the first alert of the case and compare it with the current alert. Enrich only when they are the same alert, so the case-level widget is built exactly once per case.
+Find the first alert of the case and compare it with the current alert. Enrich and open the Triage stage only when they are the same alert, so the case-level widget is built and the stage set exactly once per case, regardless of how many alerts the case later absorbs.
 
 ## 8. Workflow and Subflows
 
@@ -82,6 +83,7 @@ No declared inputs and no execution output.
 2. `Flow - IfFlowCondition` ("Is First Alert?") compares that result against the `[Alert.Identifier]` placeholder.
     - *"Yes"* branch (current alert is the first alert)
         1. `Siemplify - Get Similar Cases` runs.
+        2. `Siemplify - Change Case Stage` sets the case stage to `Triage`.
     - *"Else"* branch (current alert is NOT the first alert)
         1. *End*
 3. *End*
@@ -89,6 +91,7 @@ No declared inputs and no execution output.
 **Outcomes and Effects**
 
 1. `Siemplify - Get Similar Cases` creates a case widget.
+2. `Siemplify - Change Case Stage` moves the case to the `Triage` stage.
 
 **Error Handling**
 
@@ -121,3 +124,4 @@ None. The block is detection-agnostic.
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
 | 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.1) into a standalone subflow UCDD. Content unchanged; history before this date lives in that document. |
+| 1 | 2026-09-17 | rodajrc | **Change**: `Siemplify - Change Case Stage` (`Stage` = `Triage`) added at the end of the first-alert branch, after `Get Similar Cases`. Moved here from the DTM CatchAll main playbook, which had run it before its triage blocks since that document's version 12; it now runs once per case, on the first alert only. |

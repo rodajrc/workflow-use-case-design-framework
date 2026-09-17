@@ -3,12 +3,13 @@ ucdd_version: 1.1
 use_case_name: "Digital Threat Monitoring Catch All (dtm-catchall)"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-08-01
-last_update: 2026-09-09
+last_update: 2026-09-17
 owner: "rodajrc"
 status: "ACTIVE:IN_DEVELOPMENT"
 related_flows:
     - "Generic Case Initialization"
     - "DTM Case Initialization"
+    - "DTM Handle Externally"
     - "DTM Alert Score by Severity"
     - "Generic Alert Prioritization by Alert Severity"
     - "Generic Case Lifecycle Management by Severity"
@@ -24,16 +25,16 @@ related_flows:
 | **Use case name** | Digital Threat Monitoring Catch All (DTM CatchAll) |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-08-01* |
-| **Last update** | *2026-09-09* |
+| **Last update** | *2026-09-17* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: Playbook running end-to-end: case initialization, severity-based scoring, prioritization, tier-based case lifecycle management. Email and Telegram notification are both supported. |
-| **Related flows** | Chained subflows, each with its own UCDD under [`/examples/subflows/`](/examples/subflows/): Generic Case Initialization, DTM Case Initialization, DTM Alert Score by Severity, Generic Alert Prioritization by Alert Severity, Generic Case Lifecycle Management by Severity, DTM Alert Notification. |
+| **Related flows** | Chained subflows, each with its own UCDD under [`/examples/subflows/`](/examples/subflows/): Generic Case Initialization, DTM Case Initialization, DTM Handle Externally, DTM Alert Score by Severity, Generic Alert Prioritization by Alert Severity, Generic Case Lifecycle Management by Severity, DTM Alert Notification. |
 
 **This is UCDD Version 1.1**
 
 ## 1. Workflow Statement
 
-> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Generic Case Initialization`** runs a generic case setup, followed by **`DTM Case Initialization`** that runs DTM-specific case enrichment. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Generic Alert Prioritization by Alert Severity`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Generic Case Lifecycle Management by Severity`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
+> *DTM CatchAll* triggers on any *Google Threat Intelligence* DTM alert that carries a non-empty `monitor_id` and `monitor_name`. On execution, **`Generic Case Initialization`** runs a generic case setup and opens the `Triage` stage on the case's first alert, followed by **`DTM Case Initialization`** that runs DTM-specific case enrichment, and **`DTM Handle Externally`** that marks the source DTM alert as tracked externally in Google Threat Intelligence. Next, **`DTM Alert Score by Severity`** reads the alert's native severity and writes a weighted score into the case's and alert's context. Next, **`Generic Alert Prioritization by Alert Severity`** takes that severity as its own input and sets the case's real, native `Alert.Priority` field. **`Generic Case Lifecycle Management by Severity`** independently reads the same alert-severity value from context (not the `Alert.Priority` field Prioritization writes, and not through Prioritization's input) to either auto-close a benign alert or assign the case to the appropriate tier and move it to the Investigation or Incident case stage. Finally, **`DTM Alert Notification`** reads the Alert's assigned priority against a configurable gate and, if it clears the gate, notifies the configured contacts by email and, optionally, Telegram.*
 
 ## 2. Workflow Objective
 
@@ -47,7 +48,7 @@ The following table lists all integrations and actions using in the automation w
 
 | Integration | Role | Actions Used | Required | Note |
 |---|---|---|---|---|
-| `Google Threat Intelligence` | Alert Source for DTM Alerts | — | Required? | |
+| `Google Threat Intelligence` | Alert source for DTM alerts; receives the alert status update | `Update DTM Alert` | Required | |
 | `Tools` | Google SecOps built-in toolkit | `Get Original Alert Json`, `Add Context Value`, `Find First Alert`, `Assign Case to User` | Required | |
 | `Siemplify` | Google SecOps native action integration | `Case Tag`, `Add General Insight`, `Instruction`, `Add Scoring Context Information`, `Change Alert Priority`, `Close Alert`, `Assign Case`, `Change Case Stage` | Required | |
 | `Flow` | Google SecOps built-in control flow | `IfFlowCondition`, used for every branch point in the playbook | Required | |
@@ -81,9 +82,11 @@ The following table lists all parameters configurable across the automation work
 
 **Automated Outcomes**
 - **Similar Cases UI Widget**: case-scoped enrichment about similar cases populated only on the first alert grouped into a case ([Generic Case Initialization](/examples/subflows/generic--case-initialization.md)).
+- **Triage stage**: the case moves to the `Triage` stage on its first alert ([Generic Case Initialization](/examples/subflows/generic--case-initialization.md)).
 - **Case Tags**: `gti:dtm` and `monitor:<monitor_name>` always included. When parameter `param_is_slug_monitor_name=1`, `monitor_tenant` and `monitor_type` tags are also included ([DTM Case Initialization](/examples/subflows/dtm-catchall--case-initialization.md)).
 - **DTM Alert Insight UI Widget**: a case-wall summary of the DTM finding, written by `Add General Insight` ([DTM Case Initialization](/examples/subflows/dtm-catchall--case-initialization.md)).
 - **Severity-definition Instruction**: a plain-text analyst note explaining DTM's severity scale, attached at case init, visible in the case wall ([DTM Case Initialization](/examples/subflows/dtm-catchall--case-initialization.md)).
+- **DTM alert status sync**: the source alert is set to `Tracked Externally` in Google Threat Intelligence ([DTM Handle Externally](/examples/subflows/dtm-catchall--handle-externally.md)).
 - **Weighted Alert Score**: written to case and alert context ([DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md)).
 - **Alert Priority Update**: native alert priority update by assessing the alert score ([Generic Alert Prioritization by Alert Severity](/examples/subflows/generic--alert-prioritization-by-alert-severity.md)).
 - **Case assignment and stage change**: [Generic Case Lifecycle Management by Severity](/examples/subflows/generic--case-lifecycle-management-by-severity.md) assigns the case to parameters `param_investigation_team=@Tier1` or `param_incident_team=@Tier2` and moves it to the Investigation or Incident stage, or auto-closes the alert.
@@ -137,7 +140,7 @@ For Google SecOps, this playbook should have the following settings:
 
 ### Strategy Summary
 
-**Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring (DTM)* (product) alert. **Score** the alert using DTM *"Alert Severity Definitions"*. **Prioritize** the alert using the calculated scores. **Manage** the case's lifecycle to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
+**Trigger** on any *Google Threat Intelligence* (vendor) *Digital Threat Monitoring (DTM)* (product) alert. **Mark** the source alert as tracked externally. **Score** the alert using DTM *"Alert Severity Definitions"*. **Prioritize** the alert using the calculated scores. **Manage** the case's lifecycle to the correct Incident Response SOC team depending on the final chosen priority. Finally, **Notify** the SOC team leveraging *Email* and, optionally, *Telegram* integrations.
 
 ### Technical Strategy
 
@@ -146,20 +149,22 @@ For Google SecOps, this playbook should have the following settings:
     - Alternatively, trigger if the alert contains the original fields `monitor_id` and `monitor_name` (product distinctive fields)
     - To reduce the likelihood of false-positive execution, include a condition to check the *Device Vendor* (`[Alert.DeviceVendor]`) equal to `Google Threat Intelligence`
 
-2. **Score** the alert using the documented [Alert Severity Definitions](https://gtidocs.virustotal.com/docs/dtm-alert-severity#prioritization-of-alerts).
+2. **Mark** the source alert as `Tracked Externally` using *GoogleThreatIntelligence - Update DTM Alert*, so the DTM console reflects SOAR ownership before triage starts.
+
+3. **Score** the alert using the documented [Alert Severity Definitions](https://gtidocs.virustotal.com/docs/dtm-alert-severity#prioritization-of-alerts).
     - Use *Tools - Add Context Value* integration action to store the alert severity in the case's scope
     - Use *Siemplify - Add Scoring Context Information* integration action to calculate a weighted score of the alert
 
-3. **Prioritize** the alert using *Siemplify - Change Alert Priority* integration action to select the platform's supported prioritization model.
+4. **Prioritize** the alert using *Siemplify - Change Alert Priority* integration action to select the platform's supported prioritization model.
     - To know: *Google SecOps* cases inherit the priority level of the alert with highest priority
 
-4. **Manage** the case's lifecycle using the alert scoring information and current case priority.
+5. **Manage** the case's lifecycle using the alert scoring information and current case priority.
     - Use a *Flow - IfFlowCondition* (`Should Escalate Alert?`) to branch between the benign-close path and the escalation path
     - On the benign path, use *Siemplify - Close Alert* to auto-close, with a fixed reason, root cause, and `autoclose` tag
     - On the escalation path, use *Tools - Assign Case to User* to assign the case to an Incident Response SOC team, and *Siemplify - Change Case Stage* to modify the case's current stage to `Investigation` or `Incident`
     - Tier assignment is parameterized at the call site via `param_investigation_team`/`param_incident_team` inputs (By default `@Tier1`/`@Tier2`; *Google SecOps* built-in *SOC roles*).
 
-5. **Notify** the alert leveraging *EmailV2 - Send Email* integration action, and optionally, *Telegram - Send Message*
+6. **Notify** the alert leveraging *EmailV2 - Send Email* integration action, and optionally, *Telegram - Send Message*
 
 ### Additional Notes for Development
 
@@ -179,22 +184,24 @@ The **DTM CatchAll** playbook has the following high-level structure:
 
 | # | Subflow | Category | Bound at the call site | Reads | Writes |
 |---|---|---|---|---|---|
-| 1 | [Generic Case Initialization](/examples/subflows/generic--case-initialization.md) | subflow:enrichment | — | case alerts | Similar Cases widget |
+| 1 | [Generic Case Initialization](/examples/subflows/generic--case-initialization.md) | subflow:enrichment | — | case alerts | Similar Cases widget, case stage `Triage` |
 | 2 | [DTM Case Initialization](/examples/subflows/dtm-catchall--case-initialization.md) | subflow:enrichment | `param_is_slug_monitor_name` | original alert JSON | case tags, insight, instruction |
-| 3 | [DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md) | subflow:triage | `CONST_CONTEXT_ALERT_SEVERITY` = `CTX_ALERT_DTM_SEVERITY` | original alert `severity` | case context key, scoring entry, `[Alert.ALERT_SEVERITY]` |
-| 4 | [Generic Alert Prioritization by Alert Severity](/examples/subflows/generic--alert-prioritization-by-alert-severity.md) | subflow:triage | `CONST_ALERT_SEVERITY` = `[Alert.ALERT_SEVERITY]` | alert severity | native `Alert.Priority` |
-| 5 | [Generic Case Lifecycle Management by Severity](/examples/subflows/generic--case-lifecycle-management-by-severity.md) | subflow:case-management | `CONST_ALERT_SEVERITY` = `[Alert.ALERT_SEVERITY]`, `param_investigation_team`, `param_incident_team` | alert severity | case stage and assignee, or alert closure |
-| 6 | [DTM Alert Notification](/examples/subflows/dtm-catchall--alert-notification.md) | subflow:case-management | `param_alert_priority_to_communicate`, `param_enable_email`, `param_enable_telegram`, `param_telegram_chat_id`, `param_branding_name`, `param_playbook_name` | `Alert.Priority`, original alert JSON | email, Telegram message, Important flag on failure |
+| 3 | [DTM Handle Externally](/examples/subflows/dtm-catchall--handle-externally.md) | subflow:case-management | — | original alert `id` | DTM alert status in Google Threat Intelligence |
+| 4 | [DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md) | subflow:triage | `CONST_CONTEXT_ALERT_SEVERITY` = `CTX_ALERT_DTM_SEVERITY` | original alert `severity` | case context key, scoring entry, `[Alert.ALERT_SEVERITY]` |
+| 5 | [Generic Alert Prioritization by Alert Severity](/examples/subflows/generic--alert-prioritization-by-alert-severity.md) | subflow:triage | `CONST_ALERT_SEVERITY` = `[Alert.ALERT_SEVERITY]` | alert severity | native `Alert.Priority` |
+| 6 | [Generic Case Lifecycle Management by Severity](/examples/subflows/generic--case-lifecycle-management-by-severity.md) | subflow:case-management | `CONST_ALERT_SEVERITY` = `[Alert.ALERT_SEVERITY]`, `param_investigation_team`, `param_incident_team` | alert severity | case stage and assignee, or alert closure |
+| 7 | [DTM Alert Notification](/examples/subflows/dtm-catchall--alert-notification.md) | subflow:case-management | `param_alert_priority_to_communicate`, `param_enable_email`, `param_enable_telegram`, `param_telegram_chat_id`, `param_branding_name`, `param_playbook_name` | `Alert.Priority`, original alert JSON | email, Telegram message, Important flag on failure |
 
 **Main-workflow actions outside the blocks**
 
-- `Siemplify - Change Case Stage`, run by the main playbook itself before the triage blocks, marks the beginning of the triaging step (version 12).
+None. `Siemplify - Change Case Stage`, which the main playbook ran itself before the triage blocks from version 12, moved into Generic Case Initialization in version 17.
 
 **Contract between the blocks**
 
-- Block 3 is the only writer of the severity every later block consumes. Blocks 4 and 5 read it through `[Alert.ALERT_SEVERITY]`, an effect of `Tools - Add Alert Scoring Information` that is undocumented by the vendor (see the scoring block's Section 9). Block 5 does not read block 4's output; both read block 3.
-- Block 6 reads the native `Alert.Priority` that block 4 wrote, not the severity.
-- Blocks 1, 4 and 5 are product-agnostic and can be chained by any main workflow; blocks 2, 3 and 6 read DTM alert fields and are specific to this product.
+- Block 4 is the only writer of the severity every later block consumes. Blocks 5 and 6 read it through `[Alert.ALERT_SEVERITY]`, an effect of `Tools - Add Alert Scoring Information` that is undocumented by the vendor (see the scoring block's Section 9). Block 6 does not read block 5's output; both read block 4.
+- Block 7 reads the native `Alert.Priority` that block 5 wrote, not the severity.
+- Block 3 writes nothing into the case; its only effect is on the alert source, and no later block depends on it.
+- Blocks 1, 5 and 6 are product-agnostic and can be chained by any main workflow; blocks 2, 3, 4 and 7 read DTM alert fields and are specific to this product.
 
 **Error Handling**
 
@@ -249,3 +256,5 @@ Every non-trivial change to this document or to the playbook it describes. This 
 | 13 | 2026-08-29 | rodajrc | **Finding**: fail run in 8.2's `Add General Insight` — `substring("0", "4")` on the Confidence cell errors ("Invalid substring indices") whenever `confidence` renders shorter than 4 characters (e.g. `0.5`). `substring()` removed from action logic. |
 | 14 | 2026-08-30 | rodajrc | **Finding**: `Tools - Find First Alert` fails (`Api Key ... wasn't found`) for cases in a non-existent SOAR environment. Environment existence documented as a deployment prerequisite (Sections 3, 8.1). No playbook change. |
 | 15 | 2026-09-09 | rodajrc | **Docs**: each of the six subflows now has its own UCDD under `/examples/subflows/`. No playbook change. |
+| 16 | 2026-09-17 | rodajrc | **Change**: new block `DTM Handle Externally` chained right after DTM Case Initialization (block 3): sets the source DTM alert's status to `Tracked Externally` through `GoogleThreatIntelligence - Update DTM Alert`. Documented in its own UCDD; chain table and block numbering updated. |
+| 17 | 2026-09-17 | rodajrc | **Change**: `Siemplify - Change Case Stage` removed from the main playbook and added to Generic Case Initialization, which now sets the `Triage` stage on the case's first alert. No main-workflow actions remain outside the blocks. |

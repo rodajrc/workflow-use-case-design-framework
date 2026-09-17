@@ -84,16 +84,16 @@
             <td class=tg-label>Monitor ID
             <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
                 filter("event_type", "=", "Main Alert") | "monitor_id"]
-            <td class=tg-label>Alert Name
+            <td class=tg-label>Alert ID
             <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
-                filter("event_type", "=", "Main Alert") | "title"]
+                filter("event_type", "=", "Main Alert") | "id"]
         <tr>
             <td class=tg-label>Monitor Name
             <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
                 filter("event_type", "=", "Main Alert") | "monitor_name"]
             <td class=tg-label>Confidence
             <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
-                filter("event_type", "=", "Main Alert") | "confidence" | substring("0", "4") | trim()]
+                filter("event_type", "=", "Main Alert") | "confidence" | trim()]
         <tr>
             <td class=tg-label>Finding Type
             <td class=tg-value>[Tools_Get Original Alert Json_1.JsonResult| "Events._rawDataFields" |
