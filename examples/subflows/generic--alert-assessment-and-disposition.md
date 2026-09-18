@@ -3,11 +3,12 @@ ucdd_version: 1.1
 use_case_name: "Generic Alert Assessment and Disposition"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-17
-last_update: 2026-09-17
+last_update: 2026-09-18
 owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
     - "Digital Threat Monitoring Catch All (dtm-catchall)"
+    - "Fallback Playbook"
 ---
 
 # Generic Alert Assessment and Disposition
@@ -19,10 +20,10 @@ related_flows:
 | **Use case name** | Generic Alert Assessment and Disposition |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-09-17* |
-| **Last update** | *2026-09-17* |
+| **Last update** | *2026-09-18* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: running live as the sixth block of DTM CatchAll, where it replaced `Generic Case Lifecycle Management by Severity` on 2026-09-17. |
-| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). Reads the severity written by a scoring block such as [DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md). Successor of `Generic Case Lifecycle Management by Severity`, whose UCDD was removed with the block (see the repository history before 2026-09-17). |
+| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md) and from [Fallback Playbook](/examples/fallback/fallback.md). Reads the severity written by a scoring block such as [DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md). Successor of `Generic Case Lifecycle Management by Severity`, whose UCDD was removed with the block (see the repository history before 2026-09-17). |
 
 ## 1. Workflow Statement
 
@@ -86,16 +87,13 @@ One input constant and four declared inputs (Section 3). No execution output.
 
 **Steps**
 
-1. `Flow - IfFlowCondition` ("Dispose Alert?") tests whether `[Input.param_disposition_severities | toLower()]` contains `[Input.CONST_ALERT_SEVERITY | toLower()]`.
-    - *"Yes"* branch (dispose): `Siemplify - Close Alert` closes the alert with Reason `Inconclusive`, Root Cause `No clear conclusion`, Comment `Alert was disposed due to low priority`, assigned to `@Tier1` for the record, no tag. *End* (`Output_8`).
-    - *else* branch: continues to step 2.
-2. `Tools - Find First Alert` runs.
-3. `Flow - IfFlowCondition` ("First Alert?") tests `[Tools_Find First Alert_1.ScriptResult]` equal to `true`.
-    - *"Yes"* branch (current alert is the first alert): `Siemplify - Change Case Stage` sets `Investigation`, then `Tools - Assign Case to User` assigns the case to `param_investigation_team` (`setIfEmpty("@Tier1")`). Continues to step 4.
-    - *else* branch: continues to step 4 directly.
-4. `Flow - IfFlowCondition` ("Escalate Alert?") tests whether `[Input.param_escalation_severities | toLower()]` contains `[Input.CONST_ALERT_SEVERITY | toLower()]`. Both branches of step 3 converge here.
-    - *"Yes"* branch (escalate): `Tools - Assign Case to User` assigns the case to `param_escalation_team` (`setIfEmpty("@Tier2")`). *End* (`Output_1`).
-    - *else* branch: *End* (`Output_3`).
+1. If the severity is in `param_disposition_severities`, `Siemplify - Close Alert` closes the alert as inconclusive. *End*.
+2. If the current alert is the first alert of its case, `Siemplify - Change Case Stage` sets `Investigation` and `Tools - Assign Case to User` assigns the case to `param_investigation_team`.
+3. If the severity is in `param_escalation_severities`, `Tools - Assign Case to User` reassigns the case to `param_escalation_team`.
+4. *End*.
+
+> **Warning**
+> This is a simplification of the actual automation logic. Refer to the actual block to see exactly how it works.
 
 **Outcomes and Effects**
 
@@ -108,7 +106,7 @@ The two `Tools - Assign Case to User` steps run with `autoSkipOnFailure: true`, 
 ## 9. Assumptions
 
 - The SOC roles named in the team parameters exist in the target instance.
-- `Tools - Find First Alert` exposes a `ScriptResult` of `true` when the current alert is the first alert grouped into its case; the owner verified this on the live instance on 2026-09-17. The [Generic Case Initialization](/examples/subflows/generic--case-initialization.md) block gates on the same action by comparing its returned identifier against `[Alert.Identifier]` instead; both forms of the check are in use.
+- `Tools - Find First Alert` returns the identifier of the first alert grouped into the case, comparable as a plain string with `[Alert.Identifier]`; the same gate the [Generic Case Initialization](/examples/subflows/generic--case-initialization.md) block uses.
 - Severity values are whole tokens that do not appear inside one another. The list checks are substring checks, so a list entry `informational` would also match a severity `info`.
 
 ## 10. Improvements
@@ -118,7 +116,7 @@ The two `Tools - Assign Case to User` steps run with `autoSkipOnFailure: true`, 
 
 ## 11. Workflow Simulation and Testing
 
-Not yet exercised end-to-end in a recorded debug run since the replacement; the owner's same-day checks on the live instance covered the condition operators and the first-alert gate.
+Not yet exercised end-to-end in a recorded debug run since the replacement. Owner checks on the live instance (2026-09-17 and 2026-09-18) covered the condition operators, the first-alert gate, and the behaviour when `CONST_ALERT_SEVERITY` is unset: both list checks take their `else` branch, so an unscored alert is neither disposed nor escalated.
 
 ## 12. Resources
 
@@ -133,3 +131,4 @@ None. The block is detection-agnostic.
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
 | 0 | 2026-09-17 | rodajrc | **Initial**: block built live as the replacement of `Generic Case Lifecycle Management by Severity` in DTM CatchAll and documented from the saved definition. |
+| 1 | 2026-09-18 | rodajrc | **Fix**: `First Alert?` now compares the `Find First Alert` result with `[Alert.Identifier]`, the same gate as Generic Case Initialization, instead of the literal `true`. Also chained by the Fallback Playbook. |
