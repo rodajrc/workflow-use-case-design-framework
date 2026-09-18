@@ -3,7 +3,7 @@ ucdd_version: 1.1
 use_case_name: "DTM Alert Score by Severity"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-09
-last_update: 2026-09-09
+last_update: 2026-09-17
 owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
@@ -19,7 +19,7 @@ related_flows:
 | **Use case name** | DTM Alert Score by Severity |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-09-09* (split out of the DTM CatchAll UCDD, where it was documented since 2026-08-19) |
-| **Last update** | *2026-09-09* |
+| **Last update** | *2026-09-17* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: running live as the third block of DTM CatchAll. |
 | **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). Its output is consumed by [Generic Alert Prioritization by Alert Severity](/examples/subflows/generic--alert-prioritization-by-alert-severity.md) and [Generic Alert Assessment and Disposition](/examples/subflows/generic--alert-assessment-and-disposition.md). |
@@ -45,7 +45,7 @@ related_flows:
 
 | Parameter Name | Type | Data Type | Description | Default Value |
 |---|---|---|---|---|
-| CONST_CONTEXT_ALERT_SEVERITY | Input Constant | String | Case-context key under which the severity tag is appended. Downstream blocks reading the tag must use the same key. | CTX_ALERT_DTM_SEVERITY |
+| CONST_CONTEXT_ALERT_SEVERITY | Input Constant | String | Case-context key under which the severity tag is appended. Downstream blocks reading the tag must use the same key. | CTX_ALERT_SEVERITY |
 
 > **NOTE**
 > Parameters prefixed with the keyword `CONST` should not be modified.
@@ -85,7 +85,7 @@ Score the alert using the documented [Alert Severity Definitions](https://gtidoc
 
 **Inputs and Outputs**
 
-One input constant, `CONST_CONTEXT_ALERT_SEVERITY` (default `CTX_ALERT_DTM_SEVERITY`). No execution output.
+One input constant, `CONST_CONTEXT_ALERT_SEVERITY` (default `CTX_ALERT_SEVERITY`, also the value DTM CatchAll binds at its call site since 2026-09-18). No execution output.
 
 **Steps**
 
@@ -123,7 +123,7 @@ None explicit. All actions have `autoSkipOnFailure: false`. The `else` branch is
 
 ## 9. Assumptions
 
-- The block writes to both the case's context scope and the alert's scoring, keyed by `CONST_CONTEXT_ALERT_SEVERITY` (default `CTX_ALERT_DTM_SEVERITY`). Downstream blocks reading that value must reference the same key via this constant.
+- The block writes to both the case's context scope and the alert's scoring, keyed by `CONST_CONTEXT_ALERT_SEVERITY` (default `CTX_ALERT_SEVERITY`). Downstream blocks reading that value must reference the same key via this constant.
 - Below is an excerpt (non-contiguous lines) from the source code of the `Tools - Add Alert Scoring Information` action. The action reads the `Severity` parameter, computes a composite score across every scoring entry on the alert, then writes three separate alert-context properties in the same call: the scoring database, a numeric score, and `ALERT_SEVERITY`. Only the scoring database is mentioned in the action's own documented description.
 
 ```python
@@ -167,3 +167,4 @@ None. The detection logic lives in each DTM monitor's own query configuration.
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
 | 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.3 and the scoring-action assumption in Section 9) into a standalone subflow UCDD. Content unchanged; history before this date lives in that document. |
+| 1 | 2026-09-17 | rodajrc | **Change**: default of `CONST_CONTEXT_ALERT_SEVERITY` renamed from `CTX_ALERT_DTM_SEVERITY` to `CTX_ALERT_SEVERITY`, so every scoring block shares one case-context key. DTM CatchAll's call site followed on 2026-09-18. |
