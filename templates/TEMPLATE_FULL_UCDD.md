@@ -1,5 +1,5 @@
 ---
-ucdd_version: 1.1
+ucdd_version: 1.2
 use_case_name: "detailed_template_ucdd"
 soar_platform: ""
 creation_date: yyyy-mm-dd

@@ -43,7 +43,7 @@ The UCDD template exists to put **pressure** on four design principles and best 
 
 ## Status
 
-The template `UCDD-FRAMEWORK.md` is at version 1.1.
+The template `UCDD-FRAMEWORK.md` is at version 1.2.
 
 ## License
 

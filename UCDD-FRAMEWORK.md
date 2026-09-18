@@ -7,7 +7,7 @@ One UCDD per automation use case. A use case may end up implemented as any of th
 - A single standalone subflow (block); usually a general-use component meant to be reused by other use cases.
 - A main workflow (playbook), plus the several subflows (blocks) it is made of; usually a comprehensive use case that resolves a full incident-response gap.
 
-**This is UCDD Version 1.1**
+**This is UCDD Version 1.2**
 
 ## Document Structure
 
@@ -56,7 +56,7 @@ Or as YAML frontmatter:
 
 ```yaml
 ---
-ucdd_version: 1.1
+ucdd_version: 1.2
 use_case_name: "The name of your use case"
 soar_platform: "The name of your SOAR platform"
 creation_date: yyyy-mm-dd
@@ -72,7 +72,7 @@ related_flows: ["related_chained_subflow_1", "related_chained_subflow_2", "relat
 
 ## Version history
 
-Every non-trivial change to this document or to the playbook it describes, including continuous improvement recorded after go-live. You can place this section at the end of the document as well.
+Recommended only when the document is not tracked in git or another version-control system. When it is, the repository history already records every change to the file, and a hand-kept table duplicates that job; a short note saying so, in place of the table, is enough. Without version control, log every non-trivial change to this document or to the playbook it describes, including continuous improvement recorded after go-live. You can place this section at the end of the document as well.
 
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
@@ -287,6 +287,8 @@ This section breaks the final playbook into its constituent elements. This secti
 **I. Subflow Breakdown** 
 
 For each subflow, name it and state what it does. You want to include platform-specific detail here, like the integration actions and configurations each subflow calls.
+
+The description does not have to reproduce the playbook's logic verbatim. A concise narration of what the subflow does, in what order, and what ends it is enough, as long as the other sections of this document (the strategy, the parameters, the outcomes, the error handling) carry the rest. The playbook itself remains the reference for the exact wiring; a document that mirrors every condition and branch is expensive to keep in step with it, and a concise one is easier to maintain.
 
 **II. Input and Output Documentation** 
 
