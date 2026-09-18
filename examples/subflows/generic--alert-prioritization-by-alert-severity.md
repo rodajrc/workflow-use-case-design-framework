@@ -121,8 +121,5 @@ Exercised in every end-to-end debug run of DTM CatchAll (see that UCDD, Section 
 
 None. The block is detection-agnostic.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.4) into a standalone subflow UCDD. Content unchanged; history before this date, including the 2026-08-22 rename that resolved a community name collision and the 2026-08-24 move of lowercase normalisation into the block, lives in that document. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

@@ -126,9 +126,5 @@ Exercised in every end-to-end debug run of DTM CatchAll (see that UCDD, Section 
 
 None. The detection logic lives in each DTM monitor's own query configuration.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.2) into a standalone subflow UCDD. Content unchanged; history before this date lives in that document. |
-| 1 | 2026-09-17 | rodajrc | **Change**: `Add General Insight` table shows the Alert ID (`id`) instead of the Alert Name (`title`) in the first row of the Alert Information column; the alert title already names the alert object in the case, so the cell repeated it. Template updated and verified against the live block; it also still carried the `substring()` call removed in the parent's version 13, now dropped. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

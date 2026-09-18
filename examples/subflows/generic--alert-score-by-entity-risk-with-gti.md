@@ -124,8 +124,5 @@ Exercised by the owner on live alerts on 2026-09-18 inside the Fallback Playbook
 
 None.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-18 | rodajrc | **Initial**: documented from the live definition after the same-day fixes (fallback entry name, converged empty paths). |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

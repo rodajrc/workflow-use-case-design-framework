@@ -162,9 +162,5 @@ Exercised in every end-to-end debug run of DTM CatchAll (see that UCDD, Section 
 
 None. The detection logic lives in each DTM monitor's own query configuration.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.3 and the scoring-action assumption in Section 9) into a standalone subflow UCDD. Content unchanged; history before this date lives in that document. |
-| 1 | 2026-09-17 | rodajrc | **Change**: default of `CONST_CONTEXT_ALERT_SEVERITY` renamed from `CTX_ALERT_DTM_SEVERITY` to `CTX_ALERT_SEVERITY`, so every scoring block shares one case-context key. DTM CatchAll's call site followed on 2026-09-18. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

@@ -197,7 +197,7 @@ The **DTM CatchAll** playbook has the following high-level structure:
 
 **Main-workflow actions outside the blocks**
 
-None. `Siemplify - Change Case Stage`, which the main playbook ran itself before the triage blocks from version 12, moved into Generic Case Initialization in version 17.
+None. `Siemplify - Change Case Stage`, which the main playbook ran itself before the triage blocks from 2026-08-24, moved into Generic Case Initialization on 2026-09-17.
 
 **Contract between the blocks**
 
@@ -237,33 +237,5 @@ Several real debug-mode runs have been executed against the live playbook, inclu
 
 No detection-rule ADS is linked here. The alerts this playbook consumes originate from any GTI Digital Threat Monitoring, not a SecOps-native YARA-L rule, so the detection logic lives in each DTM monitor's own Lucene query configuration.
 
-## Version history
-
-Every non-trivial change to this document or to the playbook it describes. This is where continuous improvement after go-live gets recorded as well.
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-08-01 | rodajrc | **Initial Draft**: Objective defined |
-| 1 | 2026-08-12 | rodajrc | **Initial Draft**: Categorization, Trigger and Execution Priority defined |
-| 2 | 2026-08-14 | rodajrc | UCDD draft finalized. Wired `4 Any Alert Triage` block. |
-| 3 | 2026-08-14 | rodajrc | Blocks renamed live to the `Any <stage>` / `GTI-DTM <stage>` convention. |
-| 4 | 2026-08-14 | rodajrc | Decided `4 Any Alert Triage` should eventually split into a Case Stage Lifecycle block. |
-| 5 | 2026-08-15 | rodajrc | **First working version:** Triage assignment and Notification's block both confirmed live end-to-end on sample case alert. Notification email rebuilt with a branded HTML template and a dynamic case link using `[General.HostUrl]`, which resolves to Google SecOps instance URL. |
-| 6 | 2026-08-17 | rodajrc | Objective gained an Outcome/Scope/Dependencies breakdown. |
-| 7 | 2026-08-18 | rodajrc | **Migrated to UCDD Framework v1.1**: Adopted the 12-section structure. |
-| 8 | 2026-08-19 | rodajrc | **Completed Section 8**: documented 8.3 Alert Scoring, 8.4 Alert Prioritization, 8.5 Triage, and 8.6 Notification. |
-| 9 | 2026-08-21 | rodajrc | **Completed UCDD**: fully documented DTM CatchAll playbook as of its current version |
-| 10 | 2026-08-21 | rodajrc | **Fix**: Made alert notification DTM-specific. Fixed Telegram message template |
-| 11 | 2026-08-22 | rodajrc | **Fix**: Renamed three subflows live and in the Content Hub package: `Alert Prioritization` -> `Alert Prioritization by Alert Severity`, fixing a confirmed name collision with an unrelated existing community contribution; `Case Initialization` -> `Generic Case Initialization` and `Case Lifecycle Management` -> `Case Lifecycle Management by Severity`, proactive disambiguation, no collision found for either. |
-| 12 | 2026-08-24 | rodajrc | **improvment**: Add `Siemplify - Change Case Stage` action to main playbook to mark the beginning of the triaging step. Change 8.4 block name and moved normalization to lowercase from the input parameter. Converted `param_alert_severity` to constant. Change 8.5 block name and moved dependency to input constant instead. |
-| 13 | 2026-08-29 | rodajrc | **Finding**: fail run in 8.2's `Add General Insight` — `substring("0", "4")` on the Confidence cell errors ("Invalid substring indices") whenever `confidence` renders shorter than 4 characters (e.g. `0.5`). `substring()` removed from action logic. |
-| 14 | 2026-08-30 | rodajrc | **Finding**: `Tools - Find First Alert` fails (`Api Key ... wasn't found`) for cases in a non-existent SOAR environment. Environment existence documented as a deployment prerequisite (Sections 3, 8.1). No playbook change. |
-| 15 | 2026-09-09 | rodajrc | **Docs**: each of the six subflows now has its own UCDD under `/examples/subflows/`. No playbook change. |
-| 16 | 2026-09-17 | rodajrc | **Change**: new block `DTM Handle Externally` chained right after DTM Case Initialization (block 3): sets the source DTM alert's status to `Tracked Externally` through `GoogleThreatIntelligence - Update DTM Alert`. Documented in its own UCDD; chain table and block numbering updated. |
-| 17 | 2026-09-17 | rodajrc | **Change**: `Siemplify - Change Case Stage` removed from the main playbook and added to Generic Case Initialization, which now sets the `Triage` stage on the case's first alert. No main-workflow actions remain outside the blocks. |
-| 18 | 2026-09-17 | rodajrc | **Change**: block 6 `Generic Case Lifecycle Management by Severity` replaced by `Generic Alert Assessment and Disposition`: disposition and escalation severities become the inputs `param_disposition_severities` and `param_escalation_severities`, `param_incident_team` is renamed `param_escalation_team`, the `Investigation` stage and the investigation-team assignment run once per case on its first alert, and the `Incident` stage is no longer set. Old block deleted live and its UCDD removed from `/examples/subflows/`; both remain in the repository history. |
-| 19 | 2026-09-17 | rodajrc | **Change**: block 7 `DTM Alert Notification` renamed live to `Generic Alert Notification`, since its template reads only native alert fields; the older duplicate block of that name was deleted. Its UCDD moved to `generic--alert-notification.md`. The block is now also chained by the Fallback Playbook. |
-| 20 | 2026-09-17 | rodajrc | **Change**: DTM Alert Score by Severity's default context key is now `CTX_ALERT_SEVERITY`, one key for every scoring block. DTM CatchAll's call site still binds `CTX_ALERT_DTM_SEVERITY`, so the case-context tag name is unchanged for this playbook until the call site is updated. |
-| 21 | 2026-09-18 | rodajrc | **Change**: the scoring call site (block 4) now binds `CTX_ALERT_SEVERITY`, completing the shared-key rename; block 6's first-alert gate fixed in its own UCDD (v1). |
-| 22 | 2026-09-18 | rodajrc | **Change**: playbook view `DTM Alert` added as the playbook default for the `Tier1`, `Tier2` and `Tier3` SOC roles, showing the integration's `Update DTM Alert` action widget bound to block 3's step. |
-| 23 | 2026-09-18 | rodajrc | **Change**: block 3 renamed live from `DTM Handle Externally` to `DTM Track Externally`, after the status it sets; its UCDD file renamed to match. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

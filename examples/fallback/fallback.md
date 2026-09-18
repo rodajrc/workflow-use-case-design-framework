@@ -196,10 +196,5 @@ Exercised end-to-end by the owner on live alerts on 2026-09-18 with no issue fou
 
 None. This playbook is detection-agnostic by definition.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-12 | rodajrc | Initial scaffold from `TEMPLATE_FULL_UCDD.md`, on v1.1 |
-| 1 | 2026-09-17 | rodajrc | **Completed from the live playbook**: four generic blocks chained (Generic Alert Assessment and Disposition replaces the planned Generic Case Lifecycle Management by Severity; Generic Alert Notification added), call-site values recorded, All trigger and priority 3 documented, owner's design notes moved to Section 7 development notes and Section 10. |
-| 2 | 2026-09-18 | rodajrc | **Change**: two scoring blocks added ahead of prioritization, `Generic Alert Score by Entity Risk with GTI` for every alert and `RULE Alert Score by Severity` behind an `Is RULE alert?` condition in the main workflow; notification gate raised to `high,critical`; the duplicate notification block replaced by the shared one. Eleven defects found in the export were fixed live the same day and are recorded in the blocks' UCDDs. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

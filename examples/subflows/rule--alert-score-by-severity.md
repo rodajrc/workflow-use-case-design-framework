@@ -114,9 +114,5 @@ Verified by the owner on a live alert from a high-severity rule on 2026-09-18: t
 
 None. The block reads whatever severity any rule declares; it is not tied to one detection.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-18 | rodajrc | **Initial**: documented from the live definition after the same-day rework. |
-| 1 | 2026-09-18 | rodajrc | **Change**: routing field moved from `detection_1_severity` to `detection_ruleLabels_severity`; medium accepts `moderate`, informational accepts any value starting with `info`. High branch verified on a live rule alert. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

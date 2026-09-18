@@ -114,10 +114,5 @@ No run is recorded in this document yet.
 
 None.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-17 | rodajrc | **New**: block documented from its live definition (three steps, no inputs). Chained by DTM CatchAll as block 3 from that document's version 16. |
-| 1 | 2026-09-18 | rodajrc | **Docs**: the `Update DTM Alert` step's JSON result now feeds the `DTM Alert` playbook view of DTM CatchAll (the integration's action widget, visible to Tier1 to Tier3). No block change. |
-| 2 | 2026-09-18 | rodajrc | **Renamed** live and in this repository from `DTM Handle Externally` to `DTM Track Externally`, after the `Tracked Externally` status it sets in Google Threat Intelligence (file `dtm-catchall--track-externally.md`). No step change. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

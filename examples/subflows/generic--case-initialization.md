@@ -120,9 +120,5 @@ Exercised in every end-to-end debug run of DTM CatchAll (see that UCDD, Section 
 
 None. The block is detection-agnostic.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-09 | rodajrc | **Split** out of the DTM CatchAll UCDD (its version 14, Section 8.1) into a standalone subflow UCDD. Content unchanged; history before this date lives in that document. |
-| 1 | 2026-09-17 | rodajrc | **Change**: `Siemplify - Change Case Stage` (`Stage` = `Triage`) added at the end of the first-alert branch, after `Get Similar Cases`. Moved here from the DTM CatchAll main playbook, which had run it before its triage blocks since that document's version 12; it now runs once per case, on the first alert only. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

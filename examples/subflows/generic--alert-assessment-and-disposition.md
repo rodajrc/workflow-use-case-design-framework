@@ -126,9 +126,5 @@ Not yet exercised end-to-end in a recorded debug run since the replacement. Owne
 
 None. The block is detection-agnostic.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-17 | rodajrc | **Initial**: block built live as the replacement of `Generic Case Lifecycle Management by Severity` in DTM CatchAll and documented from the saved definition. |
-| 1 | 2026-09-18 | rodajrc | **Fix**: `First Alert?` now compares the `Find First Alert` result with `[Alert.Identifier]`, the same gate as Generic Case Initialization, instead of the literal `true`. Also chained by the Fallback Playbook. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.

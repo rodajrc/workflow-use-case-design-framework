@@ -137,9 +137,5 @@ Exercised in every end-to-end debug run of DTM CatchAll; the first live delivery
 
 None.
 
-## Version history
-
-| **Version** | **Date** | **Author** | **Summary of changes** |
-|---|---|---|---|
-| 0 | 2026-09-09 | rodajrc | **Docs**: out of the DTM CatchAll UCDD (its version 14, Section 8.6) into a standalone subflow UCDD, as `dtm-catchall--alert-notification.md`. Content unchanged. |
-| 1 | 2026-09-17 | rodajrc | **Renamed** live and in this repository to `Generic Alert Notification` (file `generic--alert-notification.md`); the duplicate generic block deleted; steps documented from the export; email-channel default corrected to enabled; stale claim that DTM fields are rendered removed. |
+> **NOTE**
+> The version-history table this document used to end with was removed on 2026-09-18. The repository's git history already records every change to this file, so keeping a changelog by hand duplicated that job.
