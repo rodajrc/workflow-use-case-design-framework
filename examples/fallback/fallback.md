@@ -1,5 +1,5 @@
 ---
-ucdd_version: 1.1
+ucdd_version: 1.2
 use_case_name: "Fallback Playbook"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-12
@@ -29,7 +29,7 @@ related_flows:
 | **Status** | **Active, in development**: enabled live at the platform's lowest priority with an All trigger. Six blocks and one condition of its own; notification channels disabled at the call site. Exercised end-to-end by the owner on live alerts on 2026-09-18. |
 | **Related flows** | Chained subflows, each with its own UCDD under [`/examples/subflows/`](/examples/subflows/): Generic Case Initialization, Generic Alert Score by Entity Risk with GTI, RULE Alert Score by Severity, Generic Alert Prioritization by Alert Severity, Generic Alert Assessment and Disposition, Generic Alert Notification. |
 
-**This is UCDD Version 1.1**
+**This is UCDD Version 1.2**
 
 ## 1. Workflow Statement
 

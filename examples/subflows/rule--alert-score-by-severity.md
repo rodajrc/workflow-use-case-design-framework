@@ -1,5 +1,5 @@
 ---
-ucdd_version: 1.1
+ucdd_version: 1.2
 use_case_name: "RULE Alert Score by Severity"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-18

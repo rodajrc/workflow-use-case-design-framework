@@ -1,5 +1,5 @@
 ---
-ucdd_version: 1.1
+ucdd_version: 1.2
 use_case_name: "Digital Threat Monitoring Catch All (dtm-catchall)"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-08-01
@@ -30,7 +30,7 @@ related_flows:
 | **Status** | **Active**: Playbook running end-to-end: case initialization, severity-based scoring, prioritization, alert disposition and team assignment. Email and Telegram notification are both supported. |
 | **Related flows** | Chained subflows, each with its own UCDD under [`/examples/subflows/`](/examples/subflows/): Generic Case Initialization, DTM Case Initialization, DTM Track Externally, DTM Alert Score by Severity, Generic Alert Prioritization by Alert Severity, Generic Alert Assessment and Disposition, Generic Alert Notification. |
 
-**This is UCDD Version 1.1**
+**This is UCDD Version 1.2**
 
 ## 1. Workflow Statement
 

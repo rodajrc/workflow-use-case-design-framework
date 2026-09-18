@@ -1,5 +1,5 @@
 ---
-ucdd_version: 1.1
+ucdd_version: 1.2
 use_case_name: "Generic Alert Score by Entity Risk with GTI"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-18
