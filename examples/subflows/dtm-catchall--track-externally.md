@@ -1,32 +1,32 @@
 ---
 ucdd_version: 1.1
-use_case_name: "DTM Handle Externally"
+use_case_name: "DTM Track Externally"
 soar_platform: "GOOGLE_SECOPS_SOAR"
 creation_date: 2026-09-17
-last_update: 2026-09-17
+last_update: 2026-09-18
 owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
     - "Digital Threat Monitoring Catch All (dtm-catchall)"
 ---
 
-# DTM Handle Externally
+# DTM Track Externally
 
 ## Document metadata
 
 | **Field** | **Value** |
 |---|---|
-| **Use case name** | DTM Handle Externally |
+| **Use case name** | DTM Track Externally |
 | **SOAR platform** | Google SecOps SOAR |
 | **Creation date** | *2026-09-17* |
-| **Last update** | *2026-09-17* |
+| **Last update** | *2026-09-18* |
 | **Owner** | rodajrc |
-| **Status** | **Active**: enabled and chained live as the third block of DTM CatchAll. |
+| **Status** | **Active**: enabled and chained live as the third block of DTM CatchAll. Named `DTM Handle Externally` until 2026-09-18. |
 | **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md), right after [DTM Case Initialization](/examples/subflows/dtm-catchall--case-initialization.md). |
 
 ## 1. Workflow Statement
 
-> *DTM Handle Externally* reads the original DTM alert and sets that alert's status to `Tracked Externally` in Google Threat Intelligence, so the DTM console reflects that the alert is now handled from the SOAR.
+> *DTM Track Externally* reads the original DTM alert and sets that alert's status to `Tracked Externally` in Google Threat Intelligence, so the DTM console reflects that the alert is now handled from the SOAR.
 
 ## 2. Workflow Objective
 
@@ -119,3 +119,5 @@ None.
 | **Version** | **Date** | **Author** | **Summary of changes** |
 |---|---|---|---|
 | 0 | 2026-09-17 | rodajrc | **New**: block documented from its live definition (three steps, no inputs). Chained by DTM CatchAll as block 3 from that document's version 16. |
+| 1 | 2026-09-18 | rodajrc | **Docs**: the `Update DTM Alert` step's JSON result now feeds the `DTM Alert` playbook view of DTM CatchAll (the integration's action widget, visible to Tier1 to Tier3). No block change. |
+| 2 | 2026-09-18 | rodajrc | **Renamed** live and in this repository from `DTM Handle Externally` to `DTM Track Externally`, after the `Tracked Externally` status it sets in Google Threat Intelligence (file `dtm-catchall--track-externally.md`). No step change. |
