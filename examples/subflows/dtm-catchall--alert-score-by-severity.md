@@ -22,7 +22,7 @@ related_flows:
 | **Last update** | *2026-09-09* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: running live as the third block of DTM CatchAll. |
-| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). Its output is consumed by [Generic Alert Prioritization by Alert Severity](/examples/subflows/generic--alert-prioritization-by-alert-severity.md) and [Generic Case Lifecycle Management by Severity](/examples/subflows/generic--case-lifecycle-management-by-severity.md). |
+| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). Its output is consumed by [Generic Alert Prioritization by Alert Severity](/examples/subflows/generic--alert-prioritization-by-alert-severity.md) and [Generic Alert Assessment and Disposition](/examples/subflows/generic--alert-assessment-and-disposition.md). |
 
 ## 1. Workflow Statement
 
@@ -113,7 +113,7 @@ One input constant, `CONST_CONTEXT_ALERT_SEVERITY` (default `CTX_ALERT_DTM_SEVER
 
 1. `Tools - Append to Context Value` writes `[Alert.TicketId]:{severity}` (comma-separated across alerts) to a case-scoped context property keyed by `CONST_CONTEXT_ALERT_SEVERITY`.
 2. `Tools - Add Alert Scoring Information` writes a `Digital Threat Monitoring`-category scoring entry to the case wall with severity High, Medium or Low depending on the branch.
-3. The same `Add Alert Scoring Information` call also sets the alert-scoped `[Alert.ALERT_SEVERITY]` field to that same value, an undocumented effect confirmed only by inspection. This is what Prioritization and Case Lifecycle Management actually consume downstream.
+3. The same `Add Alert Scoring Information` call also sets the alert-scoped `[Alert.ALERT_SEVERITY]` field to that same value, an undocumented effect confirmed only by inspection. This is what Prioritization and Alert Assessment and Disposition actually consume downstream.
 
 The action's own documented description covers only the first line (`ALERT_SCORE_INFO`, "add an entry to the alert scoring database"). `ALERT_SCORE` and `ALERT_SEVERITY` are written in the same call but never mentioned in that description.
 
