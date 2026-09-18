@@ -8,6 +8,7 @@ owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
     - "Digital Threat Monitoring Catch All (dtm-catchall)"
+    - "Fallback Playbook"
 ---
 
 # Generic Case Initialization
@@ -22,7 +23,7 @@ related_flows:
 | **Last update** | *2026-09-17* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: running live as the first block of DTM CatchAll. |
-| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). |
+| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md) and from [Fallback Playbook](/examples/fallback/fallback.md). |
 
 ## 1. Workflow Statement
 

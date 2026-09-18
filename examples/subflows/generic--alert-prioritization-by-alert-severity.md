@@ -8,6 +8,7 @@ owner: "rodajrc"
 status: "ACTIVE"
 related_flows:
     - "Digital Threat Monitoring Catch All (dtm-catchall)"
+    - "Fallback Playbook"
 ---
 
 # Generic Alert Prioritization by Alert Severity
@@ -22,7 +23,7 @@ related_flows:
 | **Last update** | *2026-09-09* |
 | **Owner** | rodajrc |
 | **Status** | **Active**: running live as the fourth block of DTM CatchAll. |
-| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md). Reads the severity written by a scoring block such as [DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md). |
+| **Related flows** | Invoked by chaining from [Digital Threat Monitoring Catch All](/examples/dtm-catchall/dtm-catchall.md) and from [Fallback Playbook](/examples/fallback/fallback.md). Reads the severity written by a scoring block such as [DTM Alert Score by Severity](/examples/subflows/dtm-catchall--alert-score-by-severity.md). |
 
 ## 1. Workflow Statement
 
