@@ -90,7 +90,7 @@ No declared inputs. The block ends in an `Output` step with no output value.
 
 **Error Handling**
 
-Both actions run with `autoSkipOnFailure: false` and no retries, so a failed update stops the main workflow at this block. No dedicated error path.
+When `GoogleThreatIntelligence - Update DTM Alert` the action skips.
 
 ## 9. Assumptions
 
