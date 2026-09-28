@@ -195,21 +195,6 @@ The **DTM CatchAll** playbook has the following high-level structure:
 | 6 | [Generic Alert Assessment and Disposition](/examples/subflows/generic--alert-assessment-and-disposition.md) | subflow:case-management | `CONST_ALERT_SEVERITY` = `[Alert.ALERT_SEVERITY]`, `param_disposition_severities`, `param_escalation_severities`, `param_investigation_team`, `param_escalation_team` | alert severity, first alert of the case | alert closure, or case stage and assignee |
 | 7 | [Generic Alert Notification](/examples/subflows/generic--alert-notification.md) | subflow:case-management | `param_alert_priority_to_communicate`, `param_enable_email`, `param_enable_telegram`, `param_telegram_chat_id`, `param_branding_name`, `param_playbook_name` | `Alert.Priority`, original alert JSON | email, Telegram message, Important flag on failure |
 
-**Main-workflow actions outside the blocks**
-
-None. `Siemplify - Change Case Stage`, which the main playbook ran itself before the triage blocks from 2026-08-24, moved into Generic Case Initialization on 2026-09-17.
-
-**Contract between the blocks**
-
-- Block 4 is the only writer of the severity every later block consumes. Blocks 5 and 6 read it through `[Alert.ALERT_SEVERITY]`, an effect of `Tools - Add Alert Scoring Information` that is undocumented by the vendor (see the scoring block's Section 9). Block 6 does not read block 5's output; both read block 4.
-- Block 7 reads the native `Alert.Priority` that block 5 wrote, not the severity.
-- Block 3 writes nothing into the case; its only effect is on the alert source, and no later block depends on it.
-- Blocks 1, 5, 6 and 7 are product-agnostic and can be chained by any main workflow (the [Fallback Playbook](/examples/fallback/fallback.md) chains all four); blocks 2, 3 and 4 read DTM alert fields and are specific to this product.
-
-**Error Handling**
-
-None of the blocks halts the workflow explicitly; every action runs with `autoSkipOnFailure: false`, so a failed action stops the run at that step. The two failures seen in production, the non-existent-environment failure at block 1 and the insight template failure at block 2 (fixed), are documented in those blocks' UCDDs.
-
 ## 9. Assumptions
 
 - Every DTM alert, regardless of sub-type (e.g. Compromised Credentials, Document, etc.), carries `monitor_id` and `monitor_name`.
